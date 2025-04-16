@@ -1,0 +1,34 @@
+---
+title: "Return Analysis"
+author: "Mingze Li"
+date: "2015-04-16"
+output:
+  pdf_document:
+    latex_engine: xelatex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Load required libraries
+library(traveltimeCLT)
+library(data.table)
+```
+
+```{r}
+trips <- fread('data/trips.csv')
+id <- sample(unique(trips$trip),1000)
+train = trips[!trips$trip %in% id,]
+test =  trips[trips$trip %in% id,]
+timeBin_x_edge <- get_timeBin_x_edges(train)
+```
+
+```{r}
+#sample_route(id,trips,1001)
+sample <- sample_route(id,trips,1001,timeBin_x_edge)
+pressure_test <- sample_route(id,trips,1001,timeBin_x_edge,abuse_ratio = 0.4,abuse_multiplier = 1.1)
+plot_CDF_compare(sample[[2]]$real_time,sample[[1]]$dependent_time,"frequency simulation")
+plot_CDF_compare(pressure_test[[2]]$real_time,pressure_test[[1]]$dependent_time,"frequency simulation")
+```

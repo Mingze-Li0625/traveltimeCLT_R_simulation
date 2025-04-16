@@ -1,5 +1,5 @@
 ---
-title: "sample route3"
+title: "sample route4"
 author: "Mingze Li 300137754"
 date: "2025-03-15"
 output:
@@ -29,7 +29,7 @@ timeBin_x_edge <- get_timeBin_x_edges(train)
 ```{r}
 #sample_route(id,trips,1001)
 sample <- sample_route(id,trips,1001,timeBin_x_edge)
-pressure_test <- sample_route(id,trips,1001,timeBin_x_edge,abuse_ratio = 0.1,abuse_multiplier = 5)
+pressure_test <- sample_route(id,trips,1001,timeBin_x_edge,abuse_ratio = 0.4,abuse_multiplier = 1.1)
 plot_CDF_compare(sample[[2]]$real_time,sample[[1]]$dependent_time,"frequency simulation")
 ```
 ```{r}
