@@ -73,12 +73,15 @@ pressure_R <- request_R(pressure_p, pressure_start_time, pressure_start_time, pr
 K <- request_K(p, start_times$start_time, start_times$start_time, sample[[2]]$real_length, risk_free = 0)
 simulated_K <- request_K(simulated_p, simulated__start_time, simulated__start_time, sample[[1]]$simulated_length, risk_free = 0)
 pressure_K <- request_K(pressure_p, pressure_start_time, pressure_start_time, pressure_test[[1]]$simulated_length, risk_free = 0)
-income <- simulated_R + simulated_K
+income <- mean(simulated_R + simulated_K)
 normal_expand <- real_price
 pressure_expand <- simulated_price$pressured_price
-mean(income[1:1000] - normal_expand)
+mean(income - normal_expand)
 mean(income - pressure_expand)
-plot(density(income[1:1000] - normal_expand), xlab = "income", main = "")
+```
+
+```{r}
+plot(density(income - normal_expand), xlab = "income", main = "")
 abline(v = 0, col = "red", lty = 2)
 plot(density(income - pressure_expand), xlab = "income", main = "")
 abline(v = 0, col = "red", lty = 2)
