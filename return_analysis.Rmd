@@ -28,8 +28,8 @@ timeBin_x_edge <- get_timeBin_x_edges(train)
 
 ```{r}
 # sample_route(id,trips,1001)
-sample <- sample_route(id, trips, 1001, timeBin_x_edge, abuse_ratio = 0, abuse_multiplier = 1)
-pressure_test <- sample_route(id, trips, 1001, timeBin_x_edge, abuse_ratio = 0.6, abuse_multiplier = 1.4)
+sample <- sample_route(id, trips, 1001, timeBin_x_edge, abuse_ratio = 0, lambda = 0)
+pressure_test <- sample_route(id, trips, 1000, timeBin_x_edge, abuse_ratio = 0, lambda = 0.4)
 ```
 
 ```{r}
@@ -40,7 +40,7 @@ plot_CDF_compare(pressure_test[[2]]$real_time, pressure_test[[1]]$dependent_time
 ```{r}
 real_price <- price(sample[[2]]$real_time, sample[[2]]$real_length)[, 1]
 simulated_price <- data.table(
-  simulated_price = price(sample[[1]]$dependent_time, sample[[1]]$simulated_length)[, 1],
+  simulated_price = price(sample[[1]]$dependent_time, sample[[1]]$simulated_length)[1:1000, 1],
   pressured_price = price(pressure_test[[1]]$dependent_time, pressure_test[[1]]$simulated_length)[, 1]
 )
 ```
@@ -78,8 +78,9 @@ income <- mean(simulated_R + simulated_K, na.rm = TRUE)
 normal_expand <- real_price
 pressure_expand <- simulated_price$pressured_price
 mean(real_price)
-mean(income - normal_expand)
-mean(income - pressure_expand)
+income
+mean(income - normal_expand)/income
+mean(income - pressure_expand)/income
 ```
 
 ```{r}
