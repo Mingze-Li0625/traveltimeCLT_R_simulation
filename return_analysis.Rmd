@@ -29,7 +29,7 @@ timeBin_x_edge <- get_timeBin_x_edges(train)
 ```{r}
 # sample_route(id,trips,1001)
 sample <- sample_route(id, trips, 1000, timeBin_x_edge, abuse_ratio = 0, lambda = 0)
-pressure_test <- sample_route(id, trips, 1000, timeBin_x_edge, abuse_ratio = 0.6, lambda = 0.6)
+pressure_test <- sample_route(id, trips, 1000, timeBin_x_edge, abuse_ratio = 0.6, lambda = 0.3)
 ```
 
 ```{r}
@@ -79,8 +79,10 @@ normal_expand <- real_price
 pressure_expand <- simulated_price$pressured_price
 mean(real_price)
 income
-mean(income - normal_expand) / income
-mean(income - pressure_expand) / income
+mean(income - normal_expand) / income * 100
+mean(income - pressure_expand) / income * 100
+sd((income - pressure_expand) / income * 100)
+var((income - pressure_expand) / income * 100)
 ```
 
 ```{r}
