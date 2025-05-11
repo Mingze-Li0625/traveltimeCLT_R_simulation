@@ -59,8 +59,8 @@ sd_long <- melt(sd_dt,
 plot_data <- merge(return_long, sd_long, by = c("abuse_ratio", "lambda"))
 
 # Add boundary constraints
-y_min <- -100
-y_max <- 25
+y_min <- -150
+y_max <- 100
 plot_data[, `:=`(
     adjusted_ymin = pmax(return - 0.5 * sd, y_min),
     adjusted_ymax = pmin(return + 0.5 * sd, y_max)
@@ -93,8 +93,8 @@ ggplot(plot_data, aes(x = as.numeric(gsub("lambda_", "", lambda)), y = return, g
         legend.key.size = unit(0.5, "cm")
     ) +
     scale_x_continuous(breaks = seq(0, 0.9, by = 0.1)) +
-    scale_y_continuous(limits = c(y_min, y_max)) +
-    coord_cartesian(ylim = c(y_min, y_max)) + # Double protection for y-axis range
+    # scale_y_continuous(limits = c(y_min, y_max)) +
+    # coord_cartesian(ylim = c(y_min, y_max)) +
     scale_color_viridis_d(option = "magma", begin = 0.1, end = 0.7) +
     scale_fill_viridis_d(option = "magma", begin = 0.1, end = 0.7) +
     guides(
