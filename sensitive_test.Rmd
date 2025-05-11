@@ -102,8 +102,8 @@ ggplot(plot_data, aes(x = as.numeric(gsub("lambda_", "", lambda)), y = return, g
         fill = guide_legend(nrow = 2)
     ) +
     guides(
-        color = guide_legend(nrow = 3),
-        fill = guide_legend(nrow = 3)
+        color = guide_legend(nrow = 2, ncol = 5),
+        fill = guide_legend(nrow = 2, ncol = 5)
     )
 ```
 
@@ -128,5 +128,5 @@ ggplot(plot_data, aes(x = as.numeric(gsub("lambda_", "", lambda)), y = return, g
         plot.title = element_text(hjust = 0.5),
         legend.key.size = unit(0.5, "cm")
     ) +
-    guides(color = guide_legend(nrow = 3))
+    guides(color = guide_legend(nrow = 2, ncol = 5))
 ```
