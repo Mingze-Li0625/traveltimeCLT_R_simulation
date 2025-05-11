@@ -29,7 +29,7 @@ timeBin_x_edge <- get_timeBin_x_edges(train)
 ```{r}
 # sample_route(id,trips,1001)
 sample <- sample_route(id, trips, 1000, timeBin_x_edge, abuse_ratio = 0, lambda = 0)
-pressure_test <- sample_route(id, trips, 1000, timeBin_x_edge, abuse_ratio = 0.6, lambda = 0.3)
+pressure_test <- sample_route(id, trips, 1000, timeBin_x_edge, abuse_ratio = 0.1, lambda = 0.7)
 ```
 
 ```{r}
