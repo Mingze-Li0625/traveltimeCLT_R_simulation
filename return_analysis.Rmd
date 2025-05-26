@@ -29,7 +29,7 @@ timeBin_x_edge <- get_timeBin_x_edges(train)
 ```{r}
 # sample_route(id,trips,1001)
 sample <- sample_route(id, trips, 1000, timeBin_x_edge, abuse_ratio = 0, lambda = 0)
-pressure_test <- sample_route(id, trips, 1000, timeBin_x_edge, abuse_ratio = 0.1, lambda = 0.7)
+pressure_test <- sample_route(id, trips, 1000, timeBin_x_edge, abuse_ratio = 0.1, lambda = 0.1)
 ```
 
 ```{r}
@@ -86,7 +86,7 @@ var((income - pressure_expand) / income * 100)
 ```
 
 ```{r}
-par(mfrow=c(1, 2))
+par(mfrow = c(1, 2))
 plot(density(na.omit(income - normal_expand)), xlab = "income", main = "normal state")
 abline(v = 0, col = "red", lty = 2)
 plot(density(na.omit(income - pressure_expand)), xlab = "income", main = "lambda = 0.6, alpha = 0.6")

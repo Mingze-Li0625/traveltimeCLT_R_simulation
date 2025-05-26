@@ -33,16 +33,18 @@ return_dt <- data.table(
 # % Standard Deviation at Different Pressure Settings
 sd_dt <- data.table(
     abuse_ratio = c(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9),
-    lambda_0.1 = c(43.7538, 41.5666, 42.0065, 42.8553, 42.7181, 43.8668, 43.3496, 44.2436, 45.6755, 50.1521),
-    lambda_0.2 = c(41.9749, 42.7653, 41.3599, 198.625, 42.8371, 43.3251, 44.8455, 43.7528, 47.9238, 53.2982),
-    lambda_0.3 = c(42.9851, 42.3916, 50.0412, 45.7494, 42.4351, 44.0311, 44.2513, 44.6331, 51.1880, 56.9215),
-    lambda_0.4 = c(42.8058, 41.5718, 40.8170, 42.2755, 42.0963, 54.3918, 58.2550, 118.6425, 51.5654, 61.8381),
-    lambda_0.5 = c(42.9635, 42.1541, 40.7934, 40.0070, 41.7231, 40.4179, 43.2834, 42.5524, 50.6880, 188.7836),
-    lambda_0.6 = c(43.8749, 40.3778, 41.5486, 42.4104, 42.7635, 41.4917, 53.6246, 42.8549, 50.2566, 56.8045),
-    lambda_0.7 = c(42.3506, 39.8282, 40.8640, 41.1597, 40.7469, 40.8893, 39.8253, 39.5828, 49.8207, 54.0856),
-    lambda_0.8 = c(43.4310, 39.6847, 41.1322, 40.9887, 37.4769, 39.5600, 39.7511, 39.6098, 46.4905, 50.0125),
-    lambda_0.9 = c(44.2391, 40.3015, 40.0298, 40.2006, 39.0265, 37.0917, 37.8211, 37.5083, 43.3250, 45.8065)
+    lambda_0.1 = c(43.7538, 41.5666, 42.0065, 42.8553, 42.7181, 43.8668, 43.3496, 44.2436, 45.6755, 50.1521) / sqrt(1000),
+    lambda_0.2 = c(41.9749, 42.7653, 41.3599, 198.625, 42.8371, 43.3251, 44.8455, 43.7528, 47.9238, 53.2982) / sqrt(1000),
+    lambda_0.3 = c(42.9851, 42.3916, 50.0412, 45.7494, 42.4351, 44.0311, 44.2513, 44.6331, 51.1880, 56.9215) / sqrt(1000),
+    lambda_0.4 = c(42.8058, 41.5718, 40.8170, 42.2755, 42.0963, 54.3918, 58.2550, 118.6425, 51.5654, 61.8381) / sqrt(1000),
+    lambda_0.5 = c(42.9635, 42.1541, 40.7934, 40.0070, 41.7231, 40.4179, 43.2834, 42.5524, 50.6880, 188.7836) / sqrt(1000),
+    lambda_0.6 = c(43.8749, 40.3778, 41.5486, 42.4104, 42.7635, 41.4917, 53.6246, 42.8549, 50.2566, 56.8045) / sqrt(1000),
+    lambda_0.7 = c(42.3506, 39.8282, 40.8640, 41.1597, 40.7469, 40.8893, 39.8253, 39.5828, 49.8207, 54.0856) / sqrt(1000),
+    lambda_0.8 = c(43.4310, 39.6847, 41.1322, 40.9887, 37.4769, 39.5600, 39.7511, 39.6098, 46.4905, 50.0125) / sqrt(1000),
+    lambda_0.9 = c(44.2391, 40.3015, 40.0298, 40.2006, 39.0265, 37.0917, 37.8211, 37.5083, 43.3250, 45.8065) / sqrt(1000)
 )
+# write sd_dt to an excel file
+# write.csv(sd_dt, "sd_dt.csv")
 ```
 
 ```{r}
@@ -62,18 +64,19 @@ plot_data <- merge(return_long, sd_long, by = c("abuse_ratio", "lambda"))
 y_min <- -150
 y_max <- 100
 plot_data[, `:=`(
-    adjusted_ymin = pmax(return - 0.5 * sd, y_min),
-    adjusted_ymax = pmin(return + 0.5 * sd, y_max)
+    adjusted_ymin = pmax(return - 1 * sd, y_min),
+    adjusted_ymax = pmin(return + 1 * sd, y_max)
 )]
 
 # Plotting with C.I.
 ggplot(plot_data, aes(x = as.numeric(gsub("lambda_", "", lambda)), y = return, group = factor(abuse_ratio))) +
     geom_ribbon(aes(ymin = adjusted_ymin, ymax = adjusted_ymax, fill = factor(abuse_ratio)),
-        alpha = 0.2
+        alpha = 0.4
     ) +
-    geom_line(aes(color = factor(abuse_ratio)), linewidth = 1.2) +
+    geom_line(aes(color = factor(abuse_ratio)), linewidth = 0.8) +
+    # geom_hline(yintercept = 0, linetype = "dashed", color = "yellow") +
     labs(
-        title = "Return with plus or minus 0.5 SD Confidence Interval by Abuse Ratio",
+        title = "Return with plus or minus 1 SD Confidence Interval",
         x = "Lambda Value",
         y = "Return (%)",
         color = "Abuse Ratio",
@@ -111,6 +114,7 @@ ggplot(plot_data, aes(x = as.numeric(gsub("lambda_", "", lambda)), y = return, g
 # plot without C.I.
 ggplot(plot_data, aes(x = as.numeric(gsub("lambda_", "", lambda)), y = return, group = factor(abuse_ratio))) +
     geom_line(aes(color = factor(abuse_ratio)), linewidth = 1.2) +
+    # geom_hline(yintercept = 0, linetype = "dashed", color = "yellow") +
     labs(
         title = "Return without Confidence Interval by Abuse Ratio",
         x = "Lambda Value",
