@@ -119,11 +119,11 @@ plot1
 dependent_uniform <- function(n, rho = 0.31) {
   S <- diag(n)
   for (i in 1:n) {
-    for (j in 2:n) {
+    for (j in 1:n) {
       S[i, j] <- rho^(abs(i - j))
     }
   }
-  S <- S + t(S)
+  S <- S
   diag(S) <- 1
   St <- 2 * sin(S * pi / 6) # must be positive definite
   U <- c(pnorm(rmvnorm(1, sigma = St)))
@@ -225,16 +225,10 @@ plot3
 first_order <- function(n, rho = 0.31) {
   S <- diag(n)
   if (n > 1) {
-    if (n > 2) {
-      for (i in 2:(n - 1)) {
-        for (j in (i - 1):(i + 1)) {
-          S[i, j] <- 2 * rho^(abs(1))
-        }
-      }
+    for (i in 1:n) {
+      if (i - 1 > 0) S[i, (i - 1)] <- rho
+      if (i + 1 <= n) S[i, (i + 1)] <- rho
     }
-    S[n, n - 1] <- 2 * rho
-    S[1, 2] <- rho
-    S[2, 1] <- rho
     diag(S) <- 1
     eigen_values <- eigen(S, symmetric = TRUE)$values
     if (!all(eigen_values >= 0)) {
@@ -292,8 +286,8 @@ second_order <- function(n, rho = 0.31) {
   S <- diag(n)
   if (n > 2) {
     for (i in 1:n) {
-      if (i - 2 > 0) S[i, (i - 2)] <- 2 * rho
-      if (i + 2 <= n) S[i, (i + 2)] <- 2 * rho
+      if (i - 2 > 0) S[i, (i - 2)] <- rho
+      if (i + 2 <= n) S[i, (i + 2)] <- rho
     }
     S[1, 3] <- rho
     S[3, 1] <- rho
@@ -448,7 +442,7 @@ plot_list <- list(plot1, plot2, plot4, plot5, plot3, plot6)
 combined_plot <- wrap_plots(plot_list, nrow = 3)
 
 
-ggsave("plot/R_combined_simulation_plots2.jpg",
+ggsave("plot/R_combined_simulation_plots3.jpg",
   plot = combined_plot,
   device = "jpg",
   width = 21,
@@ -480,9 +474,9 @@ plot7 <- ggplot(travel_time) +
       "Non-dependent" = "#1f77b4",
       "Full-dependent" = "#ff7f0e",
       "1st-order" = "#2ca02c",
-      "2nd-order" = "#d19f9f",
-      "Population" = "#7c48ac",
-      "HMM" = "#7d3f33"
+      "2nd-order" = "#d62728",
+      "Population" = "#9467bd",
+      "HMM" = "#8c564b"
     )
   ) +
   scale_linetype_manual(

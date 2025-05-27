@@ -1,0 +1,28 @@
+---
+title: "Return Analysis"
+author: "Mingze Li"
+date: "2015-04-16"
+output:
+  pdf_document:
+    latex_engine: xelatex
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+library(traveltimeCLT)
+library(data.table)
+```
+
+```{r}
+set.seed(12345)
+trips <- fread("data/trips.csv")
+id <- sample(unique(trips$trip), 1)
+sample <- trips[trips$trip %in% id, ]
+distance <- sum(sample$length)
+distance
+```
+
+```{r}
+simulated_route <- sample_route(distance, trips, 1000)
+```
