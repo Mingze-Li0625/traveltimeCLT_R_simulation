@@ -1,0 +1,75 @@
+---
+title: "Return Analysis"
+author: "Mingze Li"
+date: "2015-04-16"
+output:
+  pdf_document:
+    latex_engine: xelatex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(traveltimeCLT)
+library(data.table)
+```
+```{r}
+trips <- fread("data/trips.csv")
+trips$timeBin <- time_bins_readable(trips$time)
+timebin <- c("Global", unique(trips$timeBin))
+```
+
+```{r}
+trips[, duration := as.numeric(difftime(shift(time, type = "lead"), time, units = "secs")), by = trip]
+trips[, log_duration := log(duration)]
+
+set.seed(12345)
+id1 <- sample(unique(trips$trip), 1000)
+id2 <- sample(unique(trips$trip), 4000)
+trips1 <- trips[trips$trip %in% id1, ]
+trips2 <- trips[trips$trip %in% id2, ]
+stats <- trips1[, .(
+    log_mean = mean(log_duration, na.rm = TRUE),
+    log_sd = sd_one_input_is_0(log_duration),
+    frequency = .N
+),
+by = .(timeBin)
+]
+stats <- rbind(stats, list(
+    timeBin = "Global",
+    log_mean = mean(trips1$log_duration, na.rm = TRUE),
+    log_sd = sd_one_input_is_0(trips1$log_duration),
+    frequency = nrow(trips1)
+))
+stats
+```
+
+```{r}
+residual <- trips2[, .(
+    log_residual = log_duration - mean(log_duration, na.rm = TRUE),
+    log_standard_residual = (log_duration - mean(log_duration, na.rm = TRUE)) / sd_one_input_is_0(log_duration),
+    global_log_residual = log_duration - stats[timeBin == "Global"]$log_mean,
+    global_log_standard_residual = (log_duration - stats[timeBin == "Global"]$log_mean) / stats[timeBin == "Global"]$log_sd
+), by = timeBin]
+residual <- residual[, `:=`(
+    next_log_standard_residual = shift(log_standard_residual, type = "lead"),
+    next_global_log_standard = shift(global_log_standard_residual, type = "lead")
+), by = timeBin]
+stats2 <- residual[,
+    .(
+        correlation = cor(log_standard_residual, next_log_standard_residual, use = "complete.obs"),
+        mean_residual = mean(log_standard_residual, na.rm = TRUE),
+        frequency = .N
+    ),
+    by = timeBin
+]
+stats2 <- rbind(stats2, list(
+    timeBin = "Global",
+    correlation = cor(residual$log_standard_residual, residual$next_log_standard_residual, use = "complete.obs"),
+    mean_residual = mean(residual$log_standard_residual, na.rm = TRUE),
+    frequency = nrow(residual)
+))
+stats2
+```

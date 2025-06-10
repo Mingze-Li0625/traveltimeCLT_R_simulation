@@ -1,0 +1,832 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+]{article}
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={On-Demand},
+  pdfauthor={Mingze Li 300137754},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{On-Demand}
+\author{Mingze Li 300137754}
+\date{2025-02-04}
+
+\begin{document}
+\maketitle
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(mvtnorm)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: package 'mvtnorm' was built under R version 4.3.3
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(traveltimeCLT)}
+\FunctionTok{library}\NormalTok{(data.table)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: package 'data.table' was built under R version 4.3.3
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(dplyr)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Attaching package: 'dplyr'
+\end{verbatim}
+
+\begin{verbatim}
+## The following objects are masked from 'package:data.table':
+## 
+##     between, first, last
+\end{verbatim}
+
+\begin{verbatim}
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+\end{verbatim}
+
+\begin{verbatim}
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(ggplot2)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: package 'ggplot2' was built under R version 4.3.3
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(traveltimeHMM)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Attaching package: 'traveltimeHMM'
+\end{verbatim}
+
+\begin{verbatim}
+## The following objects are masked from 'package:traveltimeCLT':
+## 
+##     rules2timebins, time_bins, time_bins_functional,
+##     time_bins_readable, to7daybins
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(lubridate)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Attaching package: 'lubridate'
+\end{verbatim}
+
+\begin{verbatim}
+## The following objects are masked from 'package:data.table':
+## 
+##     hour, isoweek, mday, minute, month, quarter, second, wday, week,
+##     yday, year
+\end{verbatim}
+
+\begin{verbatim}
+## The following objects are masked from 'package:base':
+## 
+##     date, intersect, setdiff, union
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(patchwork)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{log\_no\_0 }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(x) \{}
+\NormalTok{  l }\OtherTok{\textless{}{-}} \FunctionTok{length}\NormalTok{(x)}
+\NormalTok{  result }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{()}
+  \ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{l) \{}
+    \ControlFlowTok{if}\NormalTok{ (x[i] }\SpecialCharTok{==} \DecValTok{0}\NormalTok{) \{}
+\NormalTok{      result }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(result, }\DecValTok{0}\NormalTok{)}
+\NormalTok{    \} }\ControlFlowTok{else}\NormalTok{ \{}
+\NormalTok{      result }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(result, }\FunctionTok{log}\NormalTok{(x[i]))}
+\NormalTok{    \}}
+\NormalTok{  \}}
+\NormalTok{  result}
+\NormalTok{\}}
+\NormalTok{sd\_na\_is\_0 }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(x) \{}
+  \ControlFlowTok{if}\NormalTok{ (}\FunctionTok{length}\NormalTok{(x) }\SpecialCharTok{\textgreater{}=} \DecValTok{2}\NormalTok{) \{}
+    \FunctionTok{return}\NormalTok{(}\FunctionTok{sd}\NormalTok{(x, }\AttributeTok{na.rm =}\NormalTok{ T))}
+\NormalTok{  \} }\ControlFlowTok{else}\NormalTok{ \{}
+    \FunctionTok{return}\NormalTok{(}\DecValTok{0}\NormalTok{)}
+\NormalTok{  \}}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Sample data}\label{sample-data}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{trips }\OtherTok{\textless{}{-}} \FunctionTok{fread}\NormalTok{(}\StringTok{"data/trips.csv"}\NormalTok{)}
+\NormalTok{trips}\SpecialCharTok{$}\NormalTok{time }\OtherTok{\textless{}{-}} \FunctionTok{as.POSIXct}\NormalTok{(trips}\SpecialCharTok{$}\NormalTok{time, }\AttributeTok{format =} \StringTok{"\%Y{-}\%m{-}\%dT\%H:\%M:\%OSZ"}\NormalTok{)}
+\NormalTok{trips}\SpecialCharTok{$}\NormalTok{timeBin }\OtherTok{\textless{}{-}} \FunctionTok{time\_bins\_readable}\NormalTok{(trips}\SpecialCharTok{$}\NormalTok{time)}
+\NormalTok{trips[, duration\_secs }\SpecialCharTok{:=} \FunctionTok{as.numeric}\NormalTok{(}\FunctionTok{difftime}\NormalTok{(}\FunctionTok{shift}\NormalTok{(time, }\AttributeTok{type =} \StringTok{"lead"}\NormalTok{), time, }\AttributeTok{units =} \StringTok{"secs"}\NormalTok{)), by }\OtherTok{=}\NormalTok{ trip]}
+\NormalTok{trips[, log\_duration }\SpecialCharTok{:=} \FunctionTok{log}\NormalTok{(duration\_secs)]}
+\NormalTok{trips }\OtherTok{\textless{}{-}} \FunctionTok{na.omit}\NormalTok{(trips)}
+\NormalTok{timeBin\_x\_edges }\OtherTok{\textless{}{-}}\NormalTok{ trips[,}
+\NormalTok{  .(}
+    \AttributeTok{mean =} \FunctionTok{mean}\NormalTok{(log\_duration, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{),}
+    \AttributeTok{sd =} \FunctionTok{sd\_na\_is\_0}\NormalTok{(log\_duration),}
+    \AttributeTok{frequency =}\NormalTok{ .N}
+\NormalTok{  ),}
+\NormalTok{  by }\OtherTok{=}\NormalTok{ .(linkId, timeBin)}
+\NormalTok{]}
+\NormalTok{timeBin\_x\_edges[, edge }\SpecialCharTok{:=} \DecValTok{1}\SpecialCharTok{:}\NormalTok{.N]}
+\CommentTok{\# sample 1000 trips}
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{1234}\NormalTok{)}
+\NormalTok{id }\OtherTok{\textless{}{-}} \FunctionTok{sample}\NormalTok{(}\FunctionTok{unique}\NormalTok{(trips}\SpecialCharTok{$}\NormalTok{trip), }\DecValTok{1000}\NormalTok{)}
+\FunctionTok{set.seed}\NormalTok{(}\ConstantTok{NULL}\NormalTok{)}
+\NormalTok{sampled\_trips }\OtherTok{\textless{}{-}}\NormalTok{ trips[trip }\SpecialCharTok{\%in\%}\NormalTok{ id, .(trip, linkId, timeBin, duration\_secs, logspeed, length, time)]}
+\NormalTok{sampled\_trips }\OtherTok{\textless{}{-}} \FunctionTok{merge}\NormalTok{(sampled\_trips, timeBin\_x\_edges, }\AttributeTok{by =} \FunctionTok{c}\NormalTok{(}\StringTok{"linkId"}\NormalTok{, }\StringTok{"timeBin"}\NormalTok{), }\AttributeTok{all.x =} \ConstantTok{TRUE}\NormalTok{)}
+\NormalTok{sampled\_time }\OtherTok{\textless{}{-}}\NormalTok{ sampled\_trips[, .(}\FunctionTok{sum}\NormalTok{(duration\_secs, }\AttributeTok{rm.na =}\NormalTok{ T)), by }\OtherTok{=} \StringTok{"trip"}\NormalTok{]}
+\FunctionTok{names}\NormalTok{(sampled\_time)[}\DecValTok{2}\NormalTok{] }\OtherTok{\textless{}{-}} \StringTok{"sampled\_time"}
+\NormalTok{sampled\_trips }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(sampled\_trips)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{Non-dependence model}\label{non-dependence-model}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{non\_dependent\_simulator }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(edges, }\AttributeTok{rho =} \FloatTok{0.31}\NormalTok{) \{}
+\NormalTok{  l }\OtherTok{\textless{}{-}} \FunctionTok{length}\NormalTok{(edges)}
+\NormalTok{  U }\OtherTok{\textless{}{-}} \FunctionTok{runif}\NormalTok{(l)}
+\NormalTok{  mu }\OtherTok{\textless{}{-}}\NormalTok{ (sampled\_trips[}\FunctionTok{match}\NormalTok{(edges, sampled\_trips}\SpecialCharTok{$}\NormalTok{edge), }\DecValTok{8}\NormalTok{])}
+\NormalTok{  sigma }\OtherTok{\textless{}{-}}\NormalTok{ (sampled\_trips[}\FunctionTok{match}\NormalTok{(edges, sampled\_trips}\SpecialCharTok{$}\NormalTok{edge), }\DecValTok{9}\NormalTok{])}
+  \FunctionTok{sum}\NormalTok{(}\FunctionTok{exp}\NormalTok{(mu }\SpecialCharTok{+}\NormalTok{ sigma }\SpecialCharTok{*} \FunctionTok{qnorm}\NormalTok{(U)))}
+\NormalTok{\}}
+\NormalTok{non\_dependent\_time }\OtherTok{\textless{}{-}}\NormalTok{ sampled\_trips }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{group\_by}\NormalTok{(trip) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{summarise}\NormalTok{(}\AttributeTok{simulated\_time =} \FunctionTok{non\_dependent\_simulator}\NormalTok{(edge))}
+\NormalTok{travel\_time }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(sampled\_time)}
+\NormalTok{travel\_time}\SpecialCharTok{$}\NormalTok{non\_dependent\_time }\OtherTok{\textless{}{-}}\NormalTok{ non\_dependent\_time}\SpecialCharTok{$}\NormalTok{simulated\_time}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{plot1 }\OtherTok{\textless{}{-}} \FunctionTok{ggplot}\NormalTok{(travel\_time) }\SpecialCharTok{+}
+  \FunctionTok{stat\_ecdf}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ sampled\_time, }\AttributeTok{color =} \StringTok{"sampled data"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{stat\_ecdf}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ non\_dependent\_time, }\AttributeTok{color =} \StringTok{"non dependent data"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"CDF of Travel Time"}\NormalTok{, }\AttributeTok{x =} \StringTok{"Total Travel Time (seconds)"}\NormalTok{, }\AttributeTok{y =} \StringTok{"Cumulative Probability"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{coord\_cartesian}\NormalTok{(}\AttributeTok{xlim =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{4000}\NormalTok{), }\AttributeTok{ylim =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{scale\_color\_manual}\NormalTok{(}
+    \AttributeTok{name =} \StringTok{"Legend"}\NormalTok{,}
+    \AttributeTok{values =} \FunctionTok{c}\NormalTok{(}
+      \StringTok{"sampled data"} \OtherTok{=} \StringTok{"red"}\NormalTok{,}
+      \StringTok{"dependent data"} \OtherTok{=} \StringTok{"black"}\NormalTok{,}
+      \StringTok{"non dependent data"} \OtherTok{=} \StringTok{"black"}\NormalTok{,}
+      \StringTok{"first order data"} \OtherTok{=} \StringTok{"black"}\NormalTok{,}
+      \StringTok{"second order data"} \OtherTok{=} \StringTok{"black"}\NormalTok{,}
+      \StringTok{"population data"} \OtherTok{=} \StringTok{"black"}\NormalTok{,}
+      \StringTok{"HMM model simulation"} \OtherTok{=} \StringTok{"black"}
+\NormalTok{    )}
+\NormalTok{  ) }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}
+    \AttributeTok{legend.position =} \FunctionTok{c}\NormalTok{(}\FloatTok{0.95}\NormalTok{, }\FloatTok{0.5}\NormalTok{),}
+    \AttributeTok{legend.justification =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{),}
+    \AttributeTok{legend.text.align =} \DecValTok{0}\NormalTok{,}
+    \AttributeTok{legend.background =} \FunctionTok{element\_rect}\NormalTok{(}\AttributeTok{color =} \StringTok{"black"}\NormalTok{, }\AttributeTok{fill =} \StringTok{"white"}\NormalTok{)}
+\NormalTok{  )}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: The `legend.text.align` argument of `theme()` is deprecated as of ggplot2
+## 3.5.0.
+## i Please use theme(legend.text = element_text(hjust)) instead.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+## generated.
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: A numeric `legend.position` argument in `theme()` was deprecated in ggplot2
+## 3.5.0.
+## i Please use the `legend.position.inside` argument of `theme()` instead.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+## generated.
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{plot1}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{On-Demand2_files/figure-latex/unnamed-chunk-5-1.pdf}}
+\#\# The Full Dependent Model
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{dependent\_uniform }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(n, }\AttributeTok{rho =} \FloatTok{0.31}\NormalTok{) \{}
+\NormalTok{  S }\OtherTok{\textless{}{-}} \FunctionTok{diag}\NormalTok{(n)}
+  \ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{n) \{}
+    \ControlFlowTok{for}\NormalTok{ (j }\ControlFlowTok{in} \DecValTok{2}\SpecialCharTok{:}\NormalTok{n) \{}
+\NormalTok{      S[i, j] }\OtherTok{\textless{}{-}}\NormalTok{ rho}\SpecialCharTok{\^{}}\NormalTok{(}\FunctionTok{abs}\NormalTok{(i }\SpecialCharTok{{-}}\NormalTok{ j))}
+\NormalTok{    \}}
+\NormalTok{  \}}
+\NormalTok{  S }\OtherTok{\textless{}{-}}\NormalTok{ S }\SpecialCharTok{+} \FunctionTok{t}\NormalTok{(S)}
+  \FunctionTok{diag}\NormalTok{(S) }\OtherTok{\textless{}{-}} \DecValTok{1}
+\NormalTok{  St }\OtherTok{\textless{}{-}} \DecValTok{2} \SpecialCharTok{*} \FunctionTok{sin}\NormalTok{(S }\SpecialCharTok{*}\NormalTok{ pi }\SpecialCharTok{/} \DecValTok{6}\NormalTok{) }\CommentTok{\# must be positive definite}
+\NormalTok{  U }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\FunctionTok{pnorm}\NormalTok{(}\FunctionTok{rmvnorm}\NormalTok{(}\DecValTok{1}\NormalTok{, }\AttributeTok{sigma =}\NormalTok{ St)))}
+\NormalTok{  U}
+\NormalTok{\}}
+\NormalTok{time\_simulator }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(edges, }\AttributeTok{rho =} \FloatTok{0.31}\NormalTok{) \{}
+\NormalTok{  l }\OtherTok{\textless{}{-}} \FunctionTok{length}\NormalTok{(edges)}
+  \ControlFlowTok{if}\NormalTok{ (l }\SpecialCharTok{\textgreater{}} \DecValTok{1}\NormalTok{) \{}
+\NormalTok{    U }\OtherTok{\textless{}{-}} \FunctionTok{dependent\_uniform}\NormalTok{(l, rho)}
+\NormalTok{  \} }\ControlFlowTok{else}\NormalTok{ \{}
+\NormalTok{    U }\OtherTok{\textless{}{-}} \FunctionTok{runif}\NormalTok{(}\DecValTok{1}\NormalTok{)}
+\NormalTok{  \}}
+\NormalTok{  mu }\OtherTok{\textless{}{-}}\NormalTok{ (sampled\_trips[}\FunctionTok{match}\NormalTok{(edges, sampled\_trips}\SpecialCharTok{$}\NormalTok{edge), }\DecValTok{8}\NormalTok{])}
+\NormalTok{  sigma }\OtherTok{\textless{}{-}}\NormalTok{ (sampled\_trips[}\FunctionTok{match}\NormalTok{(edges, sampled\_trips}\SpecialCharTok{$}\NormalTok{edge), }\DecValTok{9}\NormalTok{])}
+  \FunctionTok{sum}\NormalTok{(}\FunctionTok{exp}\NormalTok{(mu }\SpecialCharTok{+}\NormalTok{ sigma }\SpecialCharTok{*} \FunctionTok{qnorm}\NormalTok{(U)))}
+\NormalTok{\}}
+\NormalTok{simulated\_time }\OtherTok{\textless{}{-}}\NormalTok{ sampled\_trips }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{group\_by}\NormalTok{(trip) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{summarise}\NormalTok{(}\AttributeTok{simulated\_time =} \FunctionTok{time\_simulator}\NormalTok{(edge))}
+\NormalTok{travel\_time}\SpecialCharTok{$}\NormalTok{dependent }\OtherTok{\textless{}{-}}\NormalTok{ simulated\_time}\SpecialCharTok{$}\NormalTok{simulated\_time}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{plot2 }\OtherTok{\textless{}{-}} \FunctionTok{ggplot}\NormalTok{(travel\_time) }\SpecialCharTok{+}
+  \FunctionTok{stat\_ecdf}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ sampled\_time, }\AttributeTok{color =} \StringTok{"sampled data"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{stat\_ecdf}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ dependent, }\AttributeTok{color =} \StringTok{"dependent data"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"CDF of Travel Time"}\NormalTok{, }\AttributeTok{x =} \StringTok{"Total Travel Time (seconds)"}\NormalTok{, }\AttributeTok{y =} \StringTok{"Cumulative Probability"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{coord\_cartesian}\NormalTok{(}\AttributeTok{xlim =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{4000}\NormalTok{), }\AttributeTok{ylim =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{scale\_color\_manual}\NormalTok{(}
+    \AttributeTok{name =} \StringTok{"Legend"}\NormalTok{,}
+    \AttributeTok{values =} \FunctionTok{c}\NormalTok{(}
+      \StringTok{"sampled data"} \OtherTok{=} \StringTok{"red"}\NormalTok{,}
+      \StringTok{"dependent data"} \OtherTok{=} \StringTok{"black"}\NormalTok{,}
+      \StringTok{"non dependent data"} \OtherTok{=} \StringTok{"black"}\NormalTok{,}
+      \StringTok{"first order data"} \OtherTok{=} \StringTok{"black"}\NormalTok{,}
+      \StringTok{"second order data"} \OtherTok{=} \StringTok{"black"}\NormalTok{,}
+      \StringTok{"population data"} \OtherTok{=} \StringTok{"black"}\NormalTok{,}
+      \StringTok{"HMM model simulation"} \OtherTok{=} \StringTok{"black"}
+\NormalTok{    )}
+\NormalTok{  ) }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}
+    \AttributeTok{legend.position =} \FunctionTok{c}\NormalTok{(}\FloatTok{0.95}\NormalTok{, }\FloatTok{0.5}\NormalTok{),}
+    \AttributeTok{legend.justification =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{),}
+    \AttributeTok{legend.text.align =} \DecValTok{0}\NormalTok{,}
+    \AttributeTok{legend.background =} \FunctionTok{element\_rect}\NormalTok{(}\AttributeTok{color =} \StringTok{"black"}\NormalTok{, }\AttributeTok{fill =} \StringTok{"white"}\NormalTok{)}
+\NormalTok{  )}
+\NormalTok{plot2}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{On-Demand2_files/figure-latex/unnamed-chunk-7-1.pdf}}
+
+\subsection{Population model}\label{population-model}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{population\_simulator }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(duration\_secs) \{}
+\NormalTok{  l }\OtherTok{\textless{}{-}} \FunctionTok{length}\NormalTok{(duration\_secs) }\SpecialCharTok{+} \DecValTok{1}
+\NormalTok{  Z }\OtherTok{\textless{}{-}} \FunctionTok{rnorm}\NormalTok{(l, }\DecValTok{0}\NormalTok{, }\FunctionTok{sqrt}\NormalTok{(}\DecValTok{1}\NormalTok{))}
+\NormalTok{  mu }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(duration\_secs)}
+\NormalTok{  sigma }\OtherTok{\textless{}{-}} \FunctionTok{sd\_na\_is\_0}\NormalTok{(duration\_secs)}
+\NormalTok{  t }\OtherTok{\textless{}{-}} \FunctionTok{numeric}\NormalTok{(l)}
+  \ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{2}\SpecialCharTok{:}\NormalTok{l) \{}
+\NormalTok{    t[i] }\OtherTok{\textless{}{-}}\NormalTok{ t[i }\SpecialCharTok{{-}} \DecValTok{1}\NormalTok{] }\SpecialCharTok{+}\NormalTok{ mu }\SpecialCharTok{+}\NormalTok{ sigma }\SpecialCharTok{*}\NormalTok{ Z[i]}
+\NormalTok{  \}}
+\NormalTok{  t[l]}
+\NormalTok{\}}
+\NormalTok{population\_time }\OtherTok{\textless{}{-}}\NormalTok{ sampled\_trips }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{group\_by}\NormalTok{(trip) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{summarise}\NormalTok{(}\AttributeTok{simulated\_time =} \FunctionTok{population\_simulator}\NormalTok{(duration\_secs))}
+\NormalTok{travel\_time}\SpecialCharTok{$}\NormalTok{population\_time }\OtherTok{\textless{}{-}}\NormalTok{ population\_time}\SpecialCharTok{$}\NormalTok{simulated\_time}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{plot3 }\OtherTok{\textless{}{-}} \FunctionTok{ggplot}\NormalTok{(travel\_time) }\SpecialCharTok{+}
+  \FunctionTok{stat\_ecdf}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ sampled\_time, }\AttributeTok{color =} \StringTok{"sampled data"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{stat\_ecdf}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ population\_time, }\AttributeTok{color =} \StringTok{"population data"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"CDF of Travel Time"}\NormalTok{, }\AttributeTok{x =} \StringTok{"Total Travel Time (seconds)"}\NormalTok{, }\AttributeTok{y =} \StringTok{"Cumulative Probability"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{coord\_cartesian}\NormalTok{(}\AttributeTok{xlim =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{4000}\NormalTok{), }\AttributeTok{ylim =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{scale\_color\_manual}\NormalTok{(}
+    \AttributeTok{name =} \StringTok{"Legend"}\NormalTok{,}
+    \AttributeTok{values =} \FunctionTok{c}\NormalTok{(}
+      \StringTok{"sampled data"} \OtherTok{=} \StringTok{"red"}\NormalTok{,}
+      \StringTok{"dependent data"} \OtherTok{=} \StringTok{"black"}\NormalTok{,}
+      \StringTok{"non dependent data"} \OtherTok{=} \StringTok{"black"}\NormalTok{,}
+      \StringTok{"first order data"} \OtherTok{=} \StringTok{"black"}\NormalTok{,}
+      \StringTok{"second order data"} \OtherTok{=} \StringTok{"black"}\NormalTok{,}
+      \StringTok{"population data"} \OtherTok{=} \StringTok{"black"}\NormalTok{,}
+      \StringTok{"HMM model simulation"} \OtherTok{=} \StringTok{"black"}
+\NormalTok{    )}
+\NormalTok{  ) }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}
+    \AttributeTok{legend.position =} \FunctionTok{c}\NormalTok{(}\FloatTok{0.95}\NormalTok{, }\FloatTok{0.5}\NormalTok{),}
+    \AttributeTok{legend.justification =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{),}
+    \AttributeTok{legend.text.align =} \DecValTok{0}\NormalTok{,}
+    \AttributeTok{legend.background =} \FunctionTok{element\_rect}\NormalTok{(}\AttributeTok{color =} \StringTok{"black"}\NormalTok{, }\AttributeTok{fill =} \StringTok{"white"}\NormalTok{)}
+\NormalTok{  )}
+\NormalTok{plot3}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{On-Demand2_files/figure-latex/unnamed-chunk-9-1.pdf}}
+\#\# First Order Model
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{first\_order }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(n, }\AttributeTok{rho =} \FloatTok{0.31}\NormalTok{) \{}
+\NormalTok{  S }\OtherTok{\textless{}{-}} \FunctionTok{diag}\NormalTok{(n)}
+  \ControlFlowTok{if}\NormalTok{ (n }\SpecialCharTok{\textgreater{}} \DecValTok{1}\NormalTok{) \{}
+    \ControlFlowTok{if}\NormalTok{ (n }\SpecialCharTok{\textgreater{}} \DecValTok{2}\NormalTok{) \{}
+      \ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{2}\SpecialCharTok{:}\NormalTok{(n }\SpecialCharTok{{-}} \DecValTok{1}\NormalTok{)) \{}
+        \ControlFlowTok{for}\NormalTok{ (j }\ControlFlowTok{in}\NormalTok{ (i }\SpecialCharTok{{-}} \DecValTok{1}\NormalTok{)}\SpecialCharTok{:}\NormalTok{(i }\SpecialCharTok{+} \DecValTok{1}\NormalTok{)) \{}
+\NormalTok{          S[i, j] }\OtherTok{\textless{}{-}} \DecValTok{2} \SpecialCharTok{*}\NormalTok{ rho}\SpecialCharTok{\^{}}\NormalTok{(}\FunctionTok{abs}\NormalTok{(}\DecValTok{1}\NormalTok{))}
+\NormalTok{        \}}
+\NormalTok{      \}}
+\NormalTok{    \}}
+\NormalTok{    S[n, n }\SpecialCharTok{{-}} \DecValTok{1}\NormalTok{] }\OtherTok{\textless{}{-}} \DecValTok{2} \SpecialCharTok{*}\NormalTok{ rho}
+\NormalTok{    S[}\DecValTok{1}\NormalTok{, }\DecValTok{2}\NormalTok{] }\OtherTok{\textless{}{-}}\NormalTok{ rho}
+\NormalTok{    S[}\DecValTok{2}\NormalTok{, }\DecValTok{1}\NormalTok{] }\OtherTok{\textless{}{-}}\NormalTok{ rho}
+    \FunctionTok{diag}\NormalTok{(S) }\OtherTok{\textless{}{-}} \DecValTok{1}
+\NormalTok{    eigen\_values }\OtherTok{\textless{}{-}} \FunctionTok{eigen}\NormalTok{(S, }\AttributeTok{symmetric =} \ConstantTok{TRUE}\NormalTok{)}\SpecialCharTok{$}\NormalTok{values}
+    \ControlFlowTok{if}\NormalTok{ (}\SpecialCharTok{!}\FunctionTok{all}\NormalTok{(eigen\_values }\SpecialCharTok{\textgreater{}=} \DecValTok{0}\NormalTok{)) \{}
+\NormalTok{      S }\OtherTok{\textless{}{-}} \FunctionTok{as.matrix}\NormalTok{(Matrix}\SpecialCharTok{::}\FunctionTok{nearPD}\NormalTok{(S, }\AttributeTok{cor =} \ConstantTok{TRUE}\NormalTok{)}\SpecialCharTok{$}\NormalTok{mat)}
+\NormalTok{    \}}
+\NormalTok{    U }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\FunctionTok{pnorm}\NormalTok{(}\FunctionTok{rmvnorm}\NormalTok{(}\DecValTok{1}\NormalTok{, }\AttributeTok{sigma =}\NormalTok{ S)))}
+\NormalTok{  \} }\ControlFlowTok{else}\NormalTok{ \{}
+\NormalTok{    U }\OtherTok{\textless{}{-}} \FunctionTok{runif}\NormalTok{(}\DecValTok{1}\NormalTok{)}
+\NormalTok{  \}}
+\NormalTok{  U}
+\NormalTok{\}}
+\NormalTok{first\_order\_simulator }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(edges, }\AttributeTok{rho =} \FloatTok{0.31}\NormalTok{) \{}
+\NormalTok{  l }\OtherTok{\textless{}{-}} \FunctionTok{length}\NormalTok{(edges)}
+\NormalTok{  U }\OtherTok{\textless{}{-}} \FunctionTok{first\_order}\NormalTok{(l)}
+\NormalTok{  mu }\OtherTok{\textless{}{-}}\NormalTok{ (sampled\_trips[}\FunctionTok{match}\NormalTok{(edges, sampled\_trips}\SpecialCharTok{$}\NormalTok{edge), }\DecValTok{8}\NormalTok{])}
+\NormalTok{  sigma }\OtherTok{\textless{}{-}}\NormalTok{ (sampled\_trips[}\FunctionTok{match}\NormalTok{(edges, sampled\_trips}\SpecialCharTok{$}\NormalTok{edge), }\DecValTok{9}\NormalTok{])}
+  \FunctionTok{sum}\NormalTok{(}\FunctionTok{exp}\NormalTok{(mu }\SpecialCharTok{+}\NormalTok{ sigma }\SpecialCharTok{*} \FunctionTok{qnorm}\NormalTok{(U)))}
+\NormalTok{\}}
+\NormalTok{first\_order\_time }\OtherTok{\textless{}{-}}\NormalTok{ sampled\_trips }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{group\_by}\NormalTok{(trip) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{summarise}\NormalTok{(}\AttributeTok{simulated\_time =} \FunctionTok{first\_order\_simulator}\NormalTok{(edge))}
+\NormalTok{travel\_time}\SpecialCharTok{$}\NormalTok{first\_order\_time }\OtherTok{\textless{}{-}}\NormalTok{ first\_order\_time}\SpecialCharTok{$}\NormalTok{simulated\_time}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{plot4 }\OtherTok{\textless{}{-}} \FunctionTok{ggplot}\NormalTok{(travel\_time) }\SpecialCharTok{+}
+  \FunctionTok{stat\_ecdf}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ sampled\_time, }\AttributeTok{color =} \StringTok{"sampled data"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{stat\_ecdf}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ first\_order\_time, }\AttributeTok{color =} \StringTok{"first order data"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"CDF of Travel Time"}\NormalTok{, }\AttributeTok{x =} \StringTok{"Total Travel Time (seconds)"}\NormalTok{, }\AttributeTok{y =} \StringTok{"Cumulative Probability"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{coord\_cartesian}\NormalTok{(}\AttributeTok{xlim =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{4000}\NormalTok{), }\AttributeTok{ylim =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{scale\_color\_manual}\NormalTok{(}
+    \AttributeTok{name =} \StringTok{"Legend"}\NormalTok{,}
+    \AttributeTok{values =} \FunctionTok{c}\NormalTok{(}
+      \StringTok{"sampled data"} \OtherTok{=} \StringTok{"red"}\NormalTok{,}
+      \StringTok{"dependent data"} \OtherTok{=} \StringTok{"black"}\NormalTok{,}
+      \StringTok{"non dependent data"} \OtherTok{=} \StringTok{"black"}\NormalTok{,}
+      \StringTok{"first order data"} \OtherTok{=} \StringTok{"black"}\NormalTok{,}
+      \StringTok{"second order data"} \OtherTok{=} \StringTok{"black"}\NormalTok{,}
+      \StringTok{"population data"} \OtherTok{=} \StringTok{"black"}\NormalTok{,}
+      \StringTok{"HMM model simulation"} \OtherTok{=} \StringTok{"black"}
+\NormalTok{    )}
+\NormalTok{  ) }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}
+    \AttributeTok{legend.position =} \FunctionTok{c}\NormalTok{(}\FloatTok{0.95}\NormalTok{, }\FloatTok{0.5}\NormalTok{),}
+    \AttributeTok{legend.justification =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{),}
+    \AttributeTok{legend.text.align =} \DecValTok{0}\NormalTok{,}
+    \AttributeTok{legend.background =} \FunctionTok{element\_rect}\NormalTok{(}\AttributeTok{color =} \StringTok{"black"}\NormalTok{, }\AttributeTok{fill =} \StringTok{"white"}\NormalTok{)}
+\NormalTok{  )}
+\NormalTok{plot4}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{On-Demand2_files/figure-latex/unnamed-chunk-11-1.pdf}}
+\#\# Second Order Model
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{second\_order }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(n, }\AttributeTok{rho =} \FloatTok{0.31}\NormalTok{) \{}
+\NormalTok{  S }\OtherTok{\textless{}{-}} \FunctionTok{diag}\NormalTok{(n)}
+  \ControlFlowTok{if}\NormalTok{ (n }\SpecialCharTok{\textgreater{}} \DecValTok{2}\NormalTok{) \{}
+    \ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{n) \{}
+      \ControlFlowTok{if}\NormalTok{ (i }\SpecialCharTok{{-}} \DecValTok{2} \SpecialCharTok{\textgreater{}} \DecValTok{0}\NormalTok{) S[i, (i }\SpecialCharTok{{-}} \DecValTok{2}\NormalTok{)] }\OtherTok{\textless{}{-}} \DecValTok{2} \SpecialCharTok{*}\NormalTok{ rho}
+      \ControlFlowTok{if}\NormalTok{ (i }\SpecialCharTok{+} \DecValTok{2} \SpecialCharTok{\textless{}=}\NormalTok{ n) S[i, (i }\SpecialCharTok{+} \DecValTok{2}\NormalTok{)] }\OtherTok{\textless{}{-}} \DecValTok{2} \SpecialCharTok{*}\NormalTok{ rho}
+\NormalTok{    \}}
+\NormalTok{    S[}\DecValTok{1}\NormalTok{, }\DecValTok{3}\NormalTok{] }\OtherTok{\textless{}{-}}\NormalTok{ rho}
+\NormalTok{    S[}\DecValTok{3}\NormalTok{, }\DecValTok{1}\NormalTok{] }\OtherTok{\textless{}{-}}\NormalTok{ rho}
+    \FunctionTok{diag}\NormalTok{(S) }\OtherTok{\textless{}{-}} \DecValTok{1}
+\NormalTok{    eigen\_values }\OtherTok{\textless{}{-}} \FunctionTok{eigen}\NormalTok{(S, }\AttributeTok{symmetric =} \ConstantTok{TRUE}\NormalTok{)}\SpecialCharTok{$}\NormalTok{values}
+    \ControlFlowTok{if}\NormalTok{ (}\SpecialCharTok{!}\FunctionTok{all}\NormalTok{(eigen\_values }\SpecialCharTok{\textgreater{}=} \DecValTok{0}\NormalTok{)) \{}
+\NormalTok{      S }\OtherTok{\textless{}{-}} \FunctionTok{as.matrix}\NormalTok{(Matrix}\SpecialCharTok{::}\FunctionTok{nearPD}\NormalTok{(S, }\AttributeTok{cor =} \ConstantTok{TRUE}\NormalTok{)}\SpecialCharTok{$}\NormalTok{mat)}
+\NormalTok{    \}}
+\NormalTok{    U }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\FunctionTok{pnorm}\NormalTok{(}\FunctionTok{rmvnorm}\NormalTok{(}\DecValTok{1}\NormalTok{, }\AttributeTok{sigma =}\NormalTok{ S)))}
+\NormalTok{  \} }\ControlFlowTok{else}\NormalTok{ \{}
+\NormalTok{    U }\OtherTok{\textless{}{-}} \FunctionTok{runif}\NormalTok{(n)}
+\NormalTok{  \}}
+\NormalTok{  U}
+\NormalTok{\}}
+\NormalTok{second\_order\_simulator }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(edges, }\AttributeTok{rho =} \FloatTok{0.31}\NormalTok{) \{}
+\NormalTok{  l }\OtherTok{\textless{}{-}} \FunctionTok{length}\NormalTok{(edges)}
+\NormalTok{  U }\OtherTok{\textless{}{-}} \FunctionTok{second\_order}\NormalTok{(l)}
+\NormalTok{  mu }\OtherTok{\textless{}{-}}\NormalTok{ (sampled\_trips[}\FunctionTok{match}\NormalTok{(edges, sampled\_trips}\SpecialCharTok{$}\NormalTok{edge), }\DecValTok{8}\NormalTok{])}
+\NormalTok{  sigma }\OtherTok{\textless{}{-}}\NormalTok{ (sampled\_trips[}\FunctionTok{match}\NormalTok{(edges, sampled\_trips}\SpecialCharTok{$}\NormalTok{edge), }\DecValTok{9}\NormalTok{])}
+  \FunctionTok{sum}\NormalTok{(}\FunctionTok{exp}\NormalTok{(mu }\SpecialCharTok{+}\NormalTok{ sigma }\SpecialCharTok{*} \FunctionTok{qnorm}\NormalTok{(U)))}
+\NormalTok{\}}
+\NormalTok{second\_order\_time }\OtherTok{\textless{}{-}}\NormalTok{ sampled\_trips }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{group\_by}\NormalTok{(trip) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{summarise}\NormalTok{(}\AttributeTok{simulated\_time =} \FunctionTok{second\_order\_simulator}\NormalTok{(edge))}
+\NormalTok{travel\_time}\SpecialCharTok{$}\NormalTok{second\_order\_time }\OtherTok{\textless{}{-}}\NormalTok{ first\_order\_time}\SpecialCharTok{$}\NormalTok{simulated\_time}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{plot5 }\OtherTok{\textless{}{-}} \FunctionTok{ggplot}\NormalTok{(travel\_time) }\SpecialCharTok{+}
+  \FunctionTok{stat\_ecdf}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ sampled\_time, }\AttributeTok{color =} \StringTok{"sampled data"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{stat\_ecdf}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ second\_order\_time, }\AttributeTok{color =} \StringTok{"second order data"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"CDF of Travel Time"}\NormalTok{, }\AttributeTok{x =} \StringTok{"Total Travel Time (seconds)"}\NormalTok{, }\AttributeTok{y =} \StringTok{"Cumulative Probability"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{coord\_cartesian}\NormalTok{(}\AttributeTok{xlim =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{4000}\NormalTok{), }\AttributeTok{ylim =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{scale\_color\_manual}\NormalTok{(}
+    \AttributeTok{name =} \StringTok{"Legend"}\NormalTok{,}
+    \AttributeTok{values =} \FunctionTok{c}\NormalTok{(}
+      \StringTok{"sampled data"} \OtherTok{=} \StringTok{"red"}\NormalTok{,}
+      \StringTok{"dependent data"} \OtherTok{=} \StringTok{"black"}\NormalTok{,}
+      \StringTok{"non dependent data"} \OtherTok{=} \StringTok{"black"}\NormalTok{,}
+      \StringTok{"first order data"} \OtherTok{=} \StringTok{"black"}\NormalTok{,}
+      \StringTok{"second order data"} \OtherTok{=} \StringTok{"black"}\NormalTok{,}
+      \StringTok{"population data"} \OtherTok{=} \StringTok{"black"}\NormalTok{,}
+      \StringTok{"HMM model simulation"} \OtherTok{=} \StringTok{"black"}
+\NormalTok{    )}
+\NormalTok{  ) }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}
+    \AttributeTok{legend.position =} \FunctionTok{c}\NormalTok{(}\FloatTok{0.95}\NormalTok{, }\FloatTok{0.5}\NormalTok{),}
+    \AttributeTok{legend.justification =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{),}
+    \AttributeTok{legend.text.align =} \DecValTok{0}\NormalTok{,}
+    \AttributeTok{legend.background =} \FunctionTok{element\_rect}\NormalTok{(}\AttributeTok{color =} \StringTok{"black"}\NormalTok{, }\AttributeTok{fill =} \StringTok{"white"}\NormalTok{)}
+\NormalTok{  )}
+\NormalTok{plot5}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{On-Demand2_files/figure-latex/unnamed-chunk-13-1.pdf}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{tripdata }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{logspeed =}\NormalTok{ sampled\_trips}\SpecialCharTok{$}\NormalTok{logspeed,}
+  \AttributeTok{tripID =}\NormalTok{ sampled\_trips}\SpecialCharTok{$}\NormalTok{trip,}
+  \AttributeTok{timeBin =}\NormalTok{ sampled\_trips}\SpecialCharTok{$}\NormalTok{timeBin,}
+  \AttributeTok{linkID =}\NormalTok{ sampled\_trips}\SpecialCharTok{$}\NormalTok{linkId,}
+  \AttributeTok{length =}\NormalTok{ sampled\_trips}\SpecialCharTok{$}\NormalTok{length,}
+  \AttributeTok{time =}\NormalTok{ (sampled\_trips}\SpecialCharTok{$}\NormalTok{time),}
+  \AttributeTok{traveltime =}\NormalTok{ sampled\_trips}\SpecialCharTok{$}\NormalTok{duration\_secs}
+\NormalTok{)}
+\NormalTok{tripdata }\OtherTok{\textless{}{-}}\NormalTok{ tripdata }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{group\_by}\NormalTok{(tripID) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{arrange}\NormalTok{(time, }\AttributeTok{.by\_group =} \ConstantTok{TRUE}\NormalTok{)}
+\FunctionTok{unique}\NormalTok{(tripdata}\SpecialCharTok{$}\NormalTok{timeBin)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "Weekday"      "EveningRush"  "MorningRush"  "EveningNight" "Weekendday"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{tripdata}\SpecialCharTok{$}\NormalTok{time }\OtherTok{\textless{}{-}} \FunctionTok{as.POSIXct}\NormalTok{(tripdata}\SpecialCharTok{$}\NormalTok{time, }\AttributeTok{format =} \StringTok{"\%Y{-}\%m{-}\%dT\%H:\%M:\%OSZ"}\NormalTok{)}
+\NormalTok{tripdata}\SpecialCharTok{$}\NormalTok{timeBin }\OtherTok{\textless{}{-}} \FunctionTok{time\_bins\_readable}\NormalTok{(tripdata}\SpecialCharTok{$}\NormalTok{time)}
+\FunctionTok{unique}\NormalTok{(tripdata}\SpecialCharTok{$}\NormalTok{timeBin)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "Weekday"      "EveningRush"  "MorningRush"  "EveningNight" "Weekendday"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fit }\OtherTok{\textless{}{-}} \FunctionTok{traveltimeHMM}\NormalTok{(}
+  \AttributeTok{data =}\NormalTok{ tripdata,}
+  \AttributeTok{nQ =} \DecValTok{2}\NormalTok{, }\AttributeTok{max.it =} \DecValTok{20}\NormalTok{, }\AttributeTok{model =} \StringTok{"HMM"}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## max.speed is not specified, setting at default value: 130 km/h
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: Many observations are higher than speed limit (130km/h)!, about 0.9%
+## of observations.  It is advised to remove these observations.
+\end{verbatim}
+
+\begin{verbatim}
+## Model HMM with 1000 trips over 16890 roads and 5 time bins...
+\end{verbatim}
+
+\begin{verbatim}
+## Expected completion of 20 iterations in 99 secs
+\end{verbatim}
+
+\begin{verbatim}
+## Reached maximum number of iterations
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{single\_trip }\OtherTok{\textless{}{-}} \FunctionTok{subset}\NormalTok{(tripdata, tripID }\SpecialCharTok{==} \FunctionTok{unique}\NormalTok{(tripdata}\SpecialCharTok{$}\NormalTok{tripID)[}\DecValTok{1}\NormalTok{])}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{pred }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(}
+  \AttributeTok{object =}\NormalTok{ fit,}
+  \AttributeTok{tripdata =}\NormalTok{ single\_trip,}
+  \AttributeTok{starttime =}\NormalTok{ single\_trip}\SpecialCharTok{$}\NormalTok{time[}\DecValTok{1}\NormalTok{],}
+  \AttributeTok{n =} \DecValTok{1000}
+\NormalTok{)}
+\FunctionTok{hist}\NormalTok{(pred, }\AttributeTok{freq =} \ConstantTok{FALSE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{On-Demand2_files/figure-latex/unnamed-chunk-16-1.pdf}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{travel\_time}\SpecialCharTok{$}\NormalTok{HMM }\OtherTok{\textless{}{-}}\NormalTok{ pred}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(travel\_time) }\SpecialCharTok{+}
+  \FunctionTok{stat\_ecdf}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ sampled\_time, }\AttributeTok{color =} \StringTok{"sampled data"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{stat\_ecdf}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ pred, }\AttributeTok{color =} \StringTok{"HMM model simulation"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"CDF of Travel Time"}\NormalTok{, }\AttributeTok{x =} \StringTok{"Total Travel Time (seconds)"}\NormalTok{, }\AttributeTok{y =} \StringTok{"Cumulative Probability"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{coord\_cartesian}\NormalTok{(}\AttributeTok{xlim =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{4000}\NormalTok{), }\AttributeTok{ylim =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{scale\_color\_manual}\NormalTok{(}\AttributeTok{name =} \StringTok{"Legend"}\NormalTok{, }\AttributeTok{values =} \FunctionTok{c}\NormalTok{(}\StringTok{"black"}\NormalTok{, }\StringTok{"red"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{On-Demand2_files/figure-latex/unnamed-chunk-17-1.pdf}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{starttime }\OtherTok{\textless{}{-}}\NormalTok{ tripdata }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{group\_by}\NormalTok{(tripID) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{summarise}\NormalTok{(}\FunctionTok{first}\NormalTok{(time))}
+\NormalTok{pred }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{()}
+\ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\DecValTok{1000}\NormalTok{) \{}
+\NormalTok{  single\_trip }\OtherTok{\textless{}{-}} \FunctionTok{subset}\NormalTok{(tripdata, tripID }\SpecialCharTok{==} \FunctionTok{unique}\NormalTok{(tripdata}\SpecialCharTok{$}\NormalTok{tripID)[i])}
+\NormalTok{  newpred }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(}
+    \AttributeTok{object =}\NormalTok{ fit,}
+    \AttributeTok{tripdata =}\NormalTok{ single\_trip,}
+    \AttributeTok{starttime =}\NormalTok{ starttime}\SpecialCharTok{$}\StringTok{\textasciigrave{}}\AttributeTok{first(time)}\StringTok{\textasciigrave{}}\NormalTok{[i],}
+    \AttributeTok{n =} \DecValTok{1}
+\NormalTok{  )}
+\NormalTok{  pred }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(pred, newpred)}
+\NormalTok{\}}
+\NormalTok{travel\_time}\SpecialCharTok{$}\NormalTok{HMM }\OtherTok{\textless{}{-}}\NormalTok{ pred}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{plot6 }\OtherTok{\textless{}{-}} \FunctionTok{ggplot}\NormalTok{(travel\_time) }\SpecialCharTok{+}
+  \FunctionTok{stat\_ecdf}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ sampled\_time, }\AttributeTok{color =} \StringTok{"sampled data"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{stat\_ecdf}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ pred, }\AttributeTok{color =} \StringTok{"HMM model simulation"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"CDF of Travel Time"}\NormalTok{, }\AttributeTok{x =} \StringTok{"Total Travel Time (seconds)"}\NormalTok{, }\AttributeTok{y =} \StringTok{"Cumulative Probability"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{coord\_cartesian}\NormalTok{(}\AttributeTok{xlim =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{4000}\NormalTok{), }\AttributeTok{ylim =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{scale\_color\_manual}\NormalTok{(}
+    \AttributeTok{name =} \StringTok{"Legend"}\NormalTok{,}
+    \AttributeTok{values =} \FunctionTok{c}\NormalTok{(}
+      \StringTok{"sampled data"} \OtherTok{=} \StringTok{"red"}\NormalTok{,}
+      \StringTok{"dependent data"} \OtherTok{=} \StringTok{"black"}\NormalTok{,}
+      \StringTok{"non dependent data"} \OtherTok{=} \StringTok{"black"}\NormalTok{,}
+      \StringTok{"first order data"} \OtherTok{=} \StringTok{"black"}\NormalTok{,}
+      \StringTok{"second order data"} \OtherTok{=} \StringTok{"black"}\NormalTok{,}
+      \StringTok{"population data"} \OtherTok{=} \StringTok{"black"}\NormalTok{,}
+      \StringTok{"HMM model simulation"} \OtherTok{=} \StringTok{"black"}
+\NormalTok{    )}
+\NormalTok{  ) }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}
+    \AttributeTok{legend.position =} \FunctionTok{c}\NormalTok{(}\FloatTok{0.95}\NormalTok{, }\FloatTok{0.5}\NormalTok{),}
+    \AttributeTok{legend.justification =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{),}
+    \AttributeTok{legend.text.align =} \DecValTok{0}\NormalTok{,}
+    \AttributeTok{legend.background =} \FunctionTok{element\_rect}\NormalTok{(}\AttributeTok{color =} \StringTok{"black"}\NormalTok{, }\AttributeTok{fill =} \StringTok{"white"}\NormalTok{)}
+\NormalTok{  )}
+\NormalTok{plot6}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{On-Demand2_files/figure-latex/unnamed-chunk-19-1.pdf}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{plot\_list }\OtherTok{\textless{}{-}} \FunctionTok{list}\NormalTok{(plot1, plot2, plot4, plot5, plot3, plot6)}
+\NormalTok{combined\_plot }\OtherTok{\textless{}{-}} \FunctionTok{wrap\_plots}\NormalTok{(plot\_list, }\AttributeTok{nrow =} \DecValTok{3}\NormalTok{)}
+
+
+\FunctionTok{ggsave}\NormalTok{(}\StringTok{"plot/R\_combined\_simulation\_plots2.jpg"}\NormalTok{,}
+  \AttributeTok{plot =}\NormalTok{ combined\_plot,}
+  \AttributeTok{device =} \StringTok{"jpg"}\NormalTok{,}
+  \AttributeTok{width =} \DecValTok{21}\NormalTok{,}
+  \AttributeTok{height =} \FloatTok{29.7}\NormalTok{,}
+  \AttributeTok{units =} \StringTok{"cm"}\NormalTok{,}
+  \AttributeTok{dpi =} \DecValTok{300}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{plot7 }\OtherTok{\textless{}{-}} \FunctionTok{ggplot}\NormalTok{(travel\_time) }\SpecialCharTok{+}
+  \FunctionTok{stat\_ecdf}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ sampled\_time, }\AttributeTok{color =} \StringTok{"Real Data"}\NormalTok{, }\AttributeTok{linetype =} \StringTok{"Real Data"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{stat\_ecdf}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ non\_dependent\_time, }\AttributeTok{color =} \StringTok{"Non{-}dependent"}\NormalTok{, }\AttributeTok{linetype =} \StringTok{"Non{-}dependent"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{stat\_ecdf}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ dependent, }\AttributeTok{color =} \StringTok{"Full{-}dependent"}\NormalTok{, }\AttributeTok{linetype =} \StringTok{"Full{-}dependent"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{stat\_ecdf}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ first\_order\_time, }\AttributeTok{color =} \StringTok{"1st{-}order"}\NormalTok{, }\AttributeTok{linetype =} \StringTok{"1st{-}order"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{stat\_ecdf}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ second\_order\_time, }\AttributeTok{color =} \StringTok{"2nd{-}order"}\NormalTok{, }\AttributeTok{linetype =} \StringTok{"2nd{-}order"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{stat\_ecdf}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ population\_time, }\AttributeTok{color =} \StringTok{"Population"}\NormalTok{, }\AttributeTok{linetype =} \StringTok{"Population"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{stat\_ecdf}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ HMM, }\AttributeTok{color =} \StringTok{"HMM"}\NormalTok{, }\AttributeTok{linetype =} \StringTok{"HMM"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}
+    \AttributeTok{title =} \StringTok{"Combined CDF Comparison"}\NormalTok{,}
+    \AttributeTok{x =} \StringTok{"Total Travel Time (seconds)"}\NormalTok{,}
+    \AttributeTok{y =} \StringTok{"Cumulative Probability"}
+\NormalTok{  ) }\SpecialCharTok{+}
+  \FunctionTok{coord\_cartesian}\NormalTok{(}\AttributeTok{xlim =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{4000}\NormalTok{), }\AttributeTok{ylim =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{scale\_color\_manual}\NormalTok{(}
+    \AttributeTok{name =} \StringTok{"Models"}\NormalTok{,}
+    \AttributeTok{values =} \FunctionTok{c}\NormalTok{(}
+      \StringTok{"Real Data"} \OtherTok{=} \StringTok{"red"}\NormalTok{,}
+      \StringTok{"Non{-}dependent"} \OtherTok{=} \StringTok{"\#1f77b4"}\NormalTok{,}
+      \StringTok{"Full{-}dependent"} \OtherTok{=} \StringTok{"\#ff7f0e"}\NormalTok{,}
+      \StringTok{"1st{-}order"} \OtherTok{=} \StringTok{"\#2ca02c"}\NormalTok{,}
+      \StringTok{"2nd{-}order"} \OtherTok{=} \StringTok{"\#d19f9f"}\NormalTok{,}
+      \StringTok{"Population"} \OtherTok{=} \StringTok{"\#7c48ac"}\NormalTok{,}
+      \StringTok{"HMM"} \OtherTok{=} \StringTok{"\#7d3f33"}
+\NormalTok{    )}
+\NormalTok{  ) }\SpecialCharTok{+}
+  \FunctionTok{scale\_linetype\_manual}\NormalTok{(}
+    \AttributeTok{name =} \StringTok{"Models"}\NormalTok{,}
+    \AttributeTok{values =} \FunctionTok{c}\NormalTok{(}
+      \StringTok{"Real Data"} \OtherTok{=} \StringTok{"solid"}\NormalTok{,}
+      \StringTok{"Non{-}dependent"} \OtherTok{=} \StringTok{"dashed"}\NormalTok{,}
+      \StringTok{"Full{-}dependent"} \OtherTok{=} \StringTok{"dotted"}\NormalTok{,}
+      \StringTok{"1st{-}order"} \OtherTok{=} \StringTok{"dotdash"}\NormalTok{,}
+      \StringTok{"2nd{-}order"} \OtherTok{=} \StringTok{"longdash"}\NormalTok{,}
+      \StringTok{"Population"} \OtherTok{=} \StringTok{"twodash"}\NormalTok{,}
+      \StringTok{"HMM"} \OtherTok{=} \StringTok{"F1"}
+\NormalTok{    )}
+\NormalTok{  ) }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}
+    \AttributeTok{panel.background =} \FunctionTok{element\_rect}\NormalTok{(}\AttributeTok{fill =} \StringTok{"white"}\NormalTok{),}
+    \AttributeTok{panel.grid =} \FunctionTok{element\_blank}\NormalTok{(),}
+    \AttributeTok{plot.background =} \FunctionTok{element\_rect}\NormalTok{(}\AttributeTok{fill =} \StringTok{"white"}\NormalTok{),}
+    \AttributeTok{legend.position =} \StringTok{"bottom"}\NormalTok{,}
+    \AttributeTok{legend.key =} \FunctionTok{element\_rect}\NormalTok{(}\AttributeTok{fill =} \StringTok{"white"}\NormalTok{)}
+\NormalTok{  )}
+\NormalTok{plot7}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{On-Demand2_files/figure-latex/unnamed-chunk-21-1.pdf}}
+
+\end{document}

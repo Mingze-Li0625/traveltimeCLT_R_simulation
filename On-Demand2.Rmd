@@ -63,8 +63,9 @@ timeBin_x_edges <- trips[,
 ]
 timeBin_x_edges[, edge := 1:.N]
 # sample 1000 trips
-set.seed(123)
+set.seed(1234)
 id <- sample(unique(trips$trip), 1000)
+
 sampled_trips <- trips[trip %in% id, .(trip, linkId, timeBin, duration_secs, logspeed, length, time)]
 sampled_trips <- merge(sampled_trips, timeBin_x_edges, by = c("linkId", "timeBin"), all.x = TRUE)
 sampled_time <- sampled_trips[, .(sum(duration_secs, rm.na = T)), by = "trip"]
@@ -459,6 +460,7 @@ ggsave("plot/R_combined_simulation_plots2.jpg",
 ```
 
 ```{r}
+fontsize <- 4.3
 plot7 <- ggplot(travel_time) +
   stat_ecdf(aes(x = sampled_time, color = "Real Data", linetype = "Real Data")) +
   stat_ecdf(aes(x = non_dependent_time, color = "Non-dependent", linetype = "Non-dependent")) +
@@ -468,7 +470,7 @@ plot7 <- ggplot(travel_time) +
   stat_ecdf(aes(x = population_time, color = "Population", linetype = "Population")) +
   stat_ecdf(aes(x = HMM, color = "HMM", linetype = "HMM")) +
   labs(
-    title = "Combined CDF Comparison",
+    title = "Empirical CDF Comparison",
     x = "Total Travel Time (seconds)",
     y = "Cumulative Probability"
   ) +
@@ -494,15 +496,69 @@ plot7 <- ggplot(travel_time) +
       "1st-order" = "dotdash",
       "2nd-order" = "longdash",
       "Population" = "twodash",
-      "HMM" = "F1"
+      "HMM" = "F2"
     )
   ) +
   theme(
-    panel.background = element_rect(fill = "white"),
-    panel.grid = element_blank(),
-    plot.background = element_rect(fill = "white"),
-    legend.position = "bottom",
+    panel.background = element_rect(fill = "white", colour = "black", linewidth = 1),
+    panel.grid = element_line(colour = "white"),
+    panel.border = element_rect(colour = "black", fill = NA, linewidth = 1),
+    legend.position = c(0.98, 0.05),
+    legend.justification = c(1, 0),
+    text = element_text(size = rel(fontsize)),
+    plot.title = element_text(size = rel(fontsize)),
+    legend.text = element_text(size = rel(fontsize)),
     legend.key = element_rect(fill = "white")
   )
 plot7
+```
+
+```{r}
+plot8 <- ggplot(travel_time) +
+  stat_density(aes(x = sampled_time, color = "Real Data", linetype = "Real Data"), geom = "line", bw = 50) +
+  stat_density(aes(x = non_dependent_time, color = "Non-dependent", linetype = "Non-dependent"), geom = "line", bw = 50) +
+  stat_density(aes(x = dependent, color = "Full-dependent", linetype = "Full-dependent"), geom = "line", bw = 50) +
+  stat_density(aes(x = first_order_time, color = "1st-order", linetype = "1st-order"), geom = "line", bw = 50) +
+  stat_density(aes(x = second_order_time, color = "2nd-order", linetype = "2nd-order"), geom = "line", bw = 50) +
+  stat_density(aes(x = population_time, color = "Population", linetype = "Population"), geom = "line", bw = 50) +
+  stat_density(aes(x = HMM, color = "HMM", linetype = "HMM"), geom = "line", bw = 50) +
+  labs(
+    title = "Empirical PDF Comparison",
+    x = "Total Travel Time (seconds)",
+    y = "Density"
+  ) +
+  scale_color_manual(
+    name = "Models",
+    values = c(
+      "Real Data" = "red",
+      "Non-dependent" = "#1f77b4",
+      "Full-dependent" = "#ff7f0e",
+      "1st-order" = "#2ca02c",
+      "2nd-order" = "#d19f9f",
+      "Population" = "#7c48ac",
+      "HMM" = "#7d3f33"
+    )
+  ) +
+  scale_linetype_manual(
+    name = "Models",
+    values = c(
+      "Real Data" = "solid",
+      "Non-dependent" = "dashed",
+      "Full-dependent" = "dotted",
+      "1st-order" = "dotdash",
+      "2nd-order" = "longdash",
+      "Population" = "twodash",
+      "HMM" = "F2"
+    )
+  ) +
+  theme(
+    panel.background = element_rect(fill = "white", colour = "black", linewidth = 1),
+    panel.grid = element_line(colour = "white"),
+    legend.position = c(0.98, 0.95),
+    text = element_text(size = rel(fontsize)),
+    plot.title = element_text(size = rel(fontsize)),
+    legend.text = element_text(size = rel(fontsize)),
+    legend.justification = c(1, 1)
+  )
+plot8
 ```
