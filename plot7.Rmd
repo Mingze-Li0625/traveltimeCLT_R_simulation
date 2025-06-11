@@ -1,0 +1,79 @@
+---
+title: "Return Analysis 2"
+author: "Mingze Li"
+date: "2015-06-11"
+output:
+  pdf_document:
+    latex_engine: xelatex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(traveltimeCLT)
+library(data.table)
+library(ggplot2)
+```
+
+```{r}
+trips <- fread("data/trips.csv")
+names(trips)[c(2, 3, 5, 7, 8)] <- c("tripID", "entry_time", "duration_secs", "distance_meters", "linkID")
+trips$speed <- exp(trips$logspeed)
+trips$timeBin <- time_bins_readable(trips$entry_time)
+set.seed(1234)
+id <- sample(unique(trips$trip), 2000)
+user_records <- trips[trips$trip %in% id, ]
+```
+
+```{r}
+user_data <- user_records[, .(
+    start_time = min(entry_time),
+    end_time = max(entry_time),
+    duration = sum(duration_secs),
+    distance = sum(distance_meters)
+), by = tripID]
+user_data$real_price <- price(user_data$duration, user_data$distance)[, 1]
+```
+```{r}
+fit1 <- traveltimeCLT(trips, "trip-specific")
+fit2 <- traveltimeCLT(user_records, "population")
+p1 <- predict(fit1, user_records)
+p2 <- predict(fit2, user_records)
+R1 <- request_R(p1, user_data$start_time, user_data$start_time, user_data$distance, risk_free = 0)
+R2 <- request_R(p2, user_data$start_time, user_data$start_time, user_data$distance, risk_free = 0)
+K1 <- request_K(p1, user_data$start_time, user_data$start_time, user_data$distance, risk_free = 0)
+K2 <- request_K(p2, user_data$start_time, user_data$start_time, user_data$distance, risk_free = 0)
+user_data$payment_trip_specific <- R1 + K1
+user_data$payment_population <- R2 + K2
+user_data$profit_trip_specific <- user_data$payment_trip_specific - user_data$real_price
+user_data$profit_population <- user_data$payment_population - user_data$real_price
+```
+```{r}
+fontsize <- 4.3
+ggplot(user_data) +
+    geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
+    geom_point(aes(x = distance, y = profit_population, color = "Population", shape = "Population")) +
+    geom_point(aes(x = distance, y = profit_trip_specific, color = "Trip-specific", shape = "Trip-specific")) +
+    labs(x = "distance(meter)", y = "profit(CAD)") +
+    scale_color_manual(
+        name = "Model",
+        values = c("Population" = "#1f77b4", "Trip-specific" = "#ff7f0e")
+    ) +
+    scale_shape_manual(
+        name = "Model",
+        values = c("Population" = 16, "Trip-specific" = 17)
+    ) +
+    theme(
+        text = element_text(size = rel(fontsize)),
+        plot.title = element_text(size = rel(fontsize)),
+        legend.text = element_text(size = rel(fontsize)),
+        legend.position = c(0.98, 0.98),
+        legend.justification = c(1, 1),
+        legend.background = element_rect(fill = "white", colour = "black"),
+        legend.margin = margin(5, 5, 5, 5),
+        panel.background = element_rect(fill = "white", colour = "black"),
+        panel.grid = element_line(colour = "white")
+    )
+```
