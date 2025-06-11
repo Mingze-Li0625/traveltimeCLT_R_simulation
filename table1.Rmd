@@ -31,16 +31,16 @@ id2 <- sample(unique(trips$trip), 4000)
 trips1 <- trips[trips$trip %in% id1, ]
 trips2 <- trips[trips$trip %in% id2, ]
 stats <- trips1[, .(
-    log_mean = mean(log_duration, na.rm = TRUE),
-    log_sd = sd_one_input_is_0(log_duration),
+    mean = mean(duration, na.rm = TRUE),
+    sd = sd_one_input_is_0(duration),
     frequency = .N
 ),
 by = .(timeBin)
 ]
 stats <- rbind(stats, list(
     timeBin = "Global",
-    log_mean = mean(trips1$log_duration, na.rm = TRUE),
-    log_sd = sd_one_input_is_0(trips1$log_duration),
+    mean = mean(trips1$duration, na.rm = TRUE),
+    sd = sd_one_input_is_0(trips1$duration),
     frequency = nrow(trips1)
 ))
 stats
@@ -48,27 +48,29 @@ stats
 
 ```{r}
 residual <- trips2[, .(
-    log_residual = log_duration - mean(log_duration, na.rm = TRUE),
-    log_standard_residual = (log_duration - mean(log_duration, na.rm = TRUE)) / sd_one_input_is_0(log_duration),
-    global_log_residual = log_duration - stats[timeBin == "Global"]$log_mean,
-    global_log_standard_residual = (log_duration - stats[timeBin == "Global"]$log_mean) / stats[timeBin == "Global"]$log_sd
+    residual = duration - mean(duration, na.rm = TRUE),
+    standard_residual = (duration - mean(duration, na.rm = TRUE)) / sd_one_input_is_0(duration),
+    global_residual = duration - stats[timeBin == "Global"]$mean,
+    global_standard_residual = (duration - stats[timeBin == "Global"]$mean) / stats[timeBin == "Global"]$log_sd
 ), by = timeBin]
 residual <- residual[, `:=`(
-    next_log_standard_residual = shift(log_standard_residual, type = "lead"),
-    next_global_log_standard = shift(global_log_standard_residual, type = "lead")
+    next_standard_residual = shift(standard_residual, type = "lead"),
+    next_global_standard = shift(global_standard_residual, type = "lead")
 ), by = timeBin]
 stats2 <- residual[,
     .(
-        correlation = cor(log_standard_residual, next_log_standard_residual, use = "complete.obs"),
-        mean_residual = mean(log_standard_residual, na.rm = TRUE),
+        correlation = cor(standard_residual, next_standard_residual, use = "complete.obs"),
+        mean_residual = mean(residual, na.rm = TRUE),
+        sd_residual = sd_one_input_is_0(residual),
         frequency = .N
     ),
     by = timeBin
 ]
 stats2 <- rbind(stats2, list(
     timeBin = "Global",
-    correlation = cor(residual$log_standard_residual, residual$next_log_standard_residual, use = "complete.obs"),
-    mean_residual = mean(residual$log_standard_residual, na.rm = TRUE),
+    correlation = cor(residual$standard_residual, residual$next_standard_residual, use = "complete.obs"),
+    mean_residual = mean(residual$residual, na.rm = TRUE),
+    sd_residual = sd_one_input_is_0(residual$residual),
     frequency = nrow(residual)
 ))
 stats2
