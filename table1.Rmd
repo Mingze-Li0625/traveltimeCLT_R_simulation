@@ -25,20 +25,27 @@ timebin <- c("Global", unique(trips$timeBin))
 trips[, duration := as.numeric(difftime(shift(time, type = "lead"), time, units = "secs")), by = trip]
 trips[, log_duration := log(duration)]
 
-set.seed(12345)
+set.seed(1234)
 id1 <- sample(unique(trips$trip), 1000)
 id2 <- sample(unique(trips$trip), 4000)
 trips1 <- trips[trips$trip %in% id1, ]
 trips2 <- trips[trips$trip %in% id2, ]
+
+trips1[, time_group := fcase(
+    timeBin %in% c("MorningRush", "EveningRush"), "rush",
+    timeBin %in% c("EveningNight", "Weekday", "Weekendday"), "norush",
+    default = "Global"
+)]
+
+
 stats <- trips1[, .(
     mean = mean(duration, na.rm = TRUE),
     sd = sd_one_input_is_0(duration),
     frequency = .N
-),
-by = .(timeBin)
-]
+), by = .(time_group)]
+
 stats <- rbind(stats, list(
-    timeBin = "Global",
+    time_group = "Global",
     mean = mean(trips1$duration, na.rm = TRUE),
     sd = sd_one_input_is_0(trips1$duration),
     frequency = nrow(trips1)
@@ -47,31 +54,45 @@ stats
 ```
 
 ```{r}
-residual <- trips2[, .(
-    residual = duration - mean(duration, na.rm = TRUE),
-    standard_residual = (duration - mean(duration, na.rm = TRUE)) / sd_one_input_is_0(duration),
-    global_residual = duration - stats[timeBin == "Global"]$mean,
-    global_standard_residual = (duration - stats[timeBin == "Global"]$mean) / stats[timeBin == "Global"]$log_sd
-), by = timeBin]
-residual <- residual[, `:=`(
-    next_standard_residual = shift(standard_residual, type = "lead"),
-    next_global_standard = shift(global_standard_residual, type = "lead")
-), by = timeBin]
-stats2 <- residual[,
-    .(
-        correlation = cor(standard_residual, next_standard_residual, use = "complete.obs"),
-        mean_residual = mean(residual, na.rm = TRUE),
-        sd_residual = sd_one_input_is_0(residual),
-        frequency = .N
-    ),
-    by = timeBin
-]
-stats2 <- rbind(stats2, list(
-    timeBin = "Global",
-    correlation = cor(residual$standard_residual, residual$next_standard_residual, use = "complete.obs"),
-    mean_residual = mean(residual$residual, na.rm = TRUE),
-    sd_residual = sd_one_input_is_0(residual$residual),
-    frequency = nrow(residual)
+names(trips2)[c(2, 3, 5, 7, 8)] <- c("tripID", "entry_time", "duration_secs", "distance_meters", "linkID")
+trips2$speed <- exp(trips2$logspeed)
+links_stats <- link_mean_variance(trips2)
+global_correlation <- residual_autocorrelation(trips2, links_stats)[2, 2]
+rush_correlation <- residual_autocorrelation(trips2[timeBin %in% c("MorningRush", "EveningRush")], links_stats)[2, 2]
+norush_correlation <- residual_autocorrelation(trips2[timeBin %in% c("EveningNight", "Weekday", "Weekendday")], links_stats)[2, 2]
+correlation <- c(norush_correlation, rush_correlation, global_correlation)
+
+correlation_dt <- data.table(
+    time_group = c("norush", "rush", "Global"),
+    correlation = correlation
+)
+
+stats <- merge(stats, correlation_dt, by = "time_group", all = TRUE)
+```
+
+```{r}
+global_residual <- residual_variance(trips2, links_stats)
+rush_residual <- residual_variance(trips2[timeBin %in% c("MorningRush", "EveningRush")], links_stats)
+norush_residual <- residual_variance(trips2[timeBin %in% c("EveningNight", "Weekday", "Weekendday")], links_stats)
+residual <- c(norush_residual, rush_residual, global_residual)
+residual_dt <- data.table(
+    time_group = c("norush", "rush", "Global"),
+    residual = residual
+)
+stats <- merge(stats, residual_dt, by = "time_group", all = TRUE)
+
+trips2[, time_group := fcase(
+    timeBin %in% c("MorningRush", "EveningRush"), "rush",
+    timeBin %in% c("EveningNight", "Weekday", "Weekendday"), "norush",
+    default = "Global"
+)]
+
+trips2_freq <- trips2[, .(frequency2 = .N), by = .(time_group)]
+trips2_freq <- rbind(trips2_freq, list(
+    time_group = "Global",
+    frequency2 = nrow(trips2)
 ))
-stats2
+stats <- merge(stats, trips2_freq, by = "time_group", all = TRUE)
+
+stats
 ```

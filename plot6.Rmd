@@ -53,9 +53,9 @@ user_data$profit_population <- user_data$payment_population - user_data$real_pri
 ```{r}
 fontsize <- 4.3
 ggplot(user_data) +
-    geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
     geom_point(aes(x = distance, y = profit_population, color = "Population", shape = "Population")) +
     geom_point(aes(x = distance, y = profit_trip_specific, color = "Trip-specific", shape = "Trip-specific")) +
+    geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
     labs(x = "distance(meter)", y = "profit(CAD)") +
     scale_color_manual(
         name = "Model",

@@ -24,7 +24,10 @@ knitr::opts_chunk$set(echo = TRUE)
 #setwd("D:/李明泽/留学/Statistics Master/travel pricing/R-simulation/")
 library(traveltimeCLT)
 library(data.table)
+
 ```
+
+
 
 ```{r}
 data(trips)
@@ -105,4 +108,11 @@ fit <- traveltimeCLT(train)
 test <- result[[2]]
 names(test)[c(1,3,4,2)]=c("tripID","entry_time","distance_meters","linkID")
 p=predict(fit, test)
+```
+
+```{r}
+Rprof("profile.out")
+similarity_route_fiction(c(2700), trips, significance=0.05)
+Rprof(NULL)
+summaryRprof("profile.out")
 ```
