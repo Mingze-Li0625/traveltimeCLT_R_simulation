@@ -114,64 +114,9 @@ plot1 <- ggplot(travel_time) +
   )
 plot1
 ```
-## The Full Dependent Model 
-```{r}
-dependent_uniform <- function(n, rho = 0.31) {
-  S <- diag(n)
-  for (i in 1:n) {
-    for (j in 1:n) {
-      S[i, j] <- rho^(abs(i - j))
-    }
-  }
-  S <- S
-  diag(S) <- 1
-  St <- 2 * sin(S * pi / 6) # must be positive definite
-  U <- c(pnorm(rmvnorm(1, sigma = St)))
-  U
-}
-time_simulator <- function(edges, rho = 0.31) {
-  l <- length(edges)
-  if (l > 1) {
-    U <- dependent_uniform(l, rho)
-  } else {
-    U <- runif(1)
-  }
-  mu <- (sampled_trips[match(edges, sampled_trips$edge), 8])
-  sigma <- (sampled_trips[match(edges, sampled_trips$edge), 9])
-  sum(exp(mu + sigma * qnorm(U)))
-}
-simulated_time <- sampled_trips %>%
-  group_by(trip) %>%
-  summarise(simulated_time = time_simulator(edge))
-travel_time$dependent <- simulated_time$simulated_time
-```
 
-```{r}
-plot2 <- ggplot(travel_time) +
-  stat_ecdf(aes(x = sampled_time, color = "sampled data")) +
-  stat_ecdf(aes(x = dependent, color = "dependent data")) +
-  labs(title = "CDF of Travel Time", x = "Total Travel Time (seconds)", y = "Cumulative Probability") +
-  coord_cartesian(xlim = c(0, 4000), ylim = c(0, 1)) +
-  scale_color_manual(
-    name = "Legend",
-    values = c(
-      "sampled data" = "red",
-      "dependent data" = "black",
-      "non dependent data" = "black",
-      "first order data" = "black",
-      "second order data" = "black",
-      "population data" = "black",
-      "HMM model simulation" = "black"
-    )
-  ) +
-  theme(
-    legend.position = c(0.95, 0.5),
-    legend.justification = c(1, 1),
-    legend.text.align = 0,
-    legend.background = element_rect(color = "black", fill = "white")
-  )
-plot2
-```
+
+
 
 ## Population model
 
@@ -459,7 +404,6 @@ fontsize <- 4.3
 plot7 <- ggplot(travel_time) +
   stat_ecdf(aes(x = sampled_time, color = "Real Data", linetype = "Real Data")) +
   stat_ecdf(aes(x = non_dependent_time, color = "Non-dependent", linetype = "Non-dependent")) +
-  stat_ecdf(aes(x = dependent, color = "Full-dependent", linetype = "Full-dependent")) +
   stat_ecdf(aes(x = first_order_time, color = "1st-order", linetype = "1st-order")) +
   stat_ecdf(aes(x = second_order_time, color = "2nd-order", linetype = "2nd-order")) +
   stat_ecdf(aes(x = population_time, color = "Population", linetype = "Population")) +
@@ -475,7 +419,6 @@ plot7 <- ggplot(travel_time) +
     values = c(
       "Real Data" = "red",
       "Non-dependent" = "#1f77b4",
-      "Full-dependent" = "#ff7f0e",
       "1st-order" = "#2ca02c",
       "2nd-order" = "#d19f9f",
       "Population" = "#7c48ac",
@@ -487,7 +430,6 @@ plot7 <- ggplot(travel_time) +
     values = c(
       "Real Data" = "solid",
       "Non-dependent" = "dashed",
-      "Full-dependent" = "dotted",
       "1st-order" = "dotdash",
       "2nd-order" = "longdash",
       "Population" = "twodash",
@@ -511,12 +453,11 @@ plot7
 ```{r}
 plot8 <- ggplot(travel_time) +
   stat_density(aes(x = sampled_time, color = "Real Data", linetype = "Real Data"), geom = "line", bw = 50) +
-  stat_density(aes(x = non_dependent_time, color = "Non-dependent", linetype = "Non-dependent"), geom = "line", bw = 50) +
-  stat_density(aes(x = dependent, color = "Full-dependent", linetype = "Full-dependent"), geom = "line", bw = 50) +
-  stat_density(aes(x = first_order_time, color = "1st-order", linetype = "1st-order"), geom = "line", bw = 50) +
-  stat_density(aes(x = second_order_time, color = "2nd-order", linetype = "2nd-order"), geom = "line", bw = 50) +
-  stat_density(aes(x = population_time, color = "Population", linetype = "Population"), geom = "line", bw = 50) +
-  stat_density(aes(x = HMM, color = "HMM", linetype = "HMM"), geom = "line", bw = 50) +
+  stat_density(aes(x = non_dependent_time, color = "Non-dependent", linetype = "Non-dependent"), geom = "line", bw = 150) +
+  stat_density(aes(x = first_order_time, color = "1st-order", linetype = "1st-order"), geom = "line", bw = 150) +
+  stat_density(aes(x = second_order_time, color = "2nd-order", linetype = "2nd-order"), geom = "line", bw = 150) +
+  stat_density(aes(x = population_time, color = "Population", linetype = "Population"), geom = "line", bw = 150) +
+  stat_density(aes(x = HMM, color = "HMM", linetype = "HMM"), geom = "line", bw = 150) +
   labs(
     title = "Empirical PDF Comparison",
     x = "Total Travel Time (seconds)",
@@ -527,7 +468,6 @@ plot8 <- ggplot(travel_time) +
     values = c(
       "Real Data" = "red",
       "Non-dependent" = "#1f77b4",
-      "Full-dependent" = "#ff7f0e",
       "1st-order" = "#2ca02c",
       "2nd-order" = "#d19f9f",
       "Population" = "#7c48ac",
@@ -539,7 +479,6 @@ plot8 <- ggplot(travel_time) +
     values = c(
       "Real Data" = "solid",
       "Non-dependent" = "dashed",
-      "Full-dependent" = "dotted",
       "1st-order" = "dotdash",
       "2nd-order" = "longdash",
       "Population" = "twodash",

@@ -52,20 +52,59 @@ user_data$profit_population <- user_data$payment_population - user_data$real_pri
 ```
 ```{r}
 fontsize <- 4.3
+breaks <- seq(0, 60000, 5000)
+user_data$dist_group <- cut(
+    user_data$distance,
+    breaks = breaks,
+    include.lowest = TRUE,
+    right = FALSE
+)
+
+
+user_data <- subset(user_data, distance < 60000 & !is.na(dist_group))
+n_groups <- length(levels(user_data$dist_group))
+
+
 ggplot(user_data) +
-    geom_point(aes(x = distance, y = profit_population, color = "Population", shape = "Population")) +
-    geom_point(aes(x = distance, y = profit_trip_specific, color = "Trip-specific", shape = "Trip-specific")) +
-    geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
-    labs(x = "distance(meter)", y = "profit(CAD)") +
-    scale_color_manual(
-        name = "Model",
-        values = c("Population" = "#1f77b4", "Trip-specific" = "#ff7f0e")
+    geom_boxplot(
+        aes(
+            x = dist_group,
+            y = profit_population,
+            fill = "Population"
+        ),
+        alpha = 0.5,
+        outlier.colour = "#2682c3",
+        outlier.shape = 19,
+        outlier.alpha = 1
     ) +
-    scale_shape_manual(
+    geom_boxplot(
+        aes(
+            x = dist_group,
+            y = profit_trip_specific,
+            fill = "Trip-specific"
+        ),
+        alpha = 0.5,
+        outlier.colour = "#ff8b25",
+        outlier.shape = 17,
+        outlier.alpha = 1
+    ) +
+    labs(x = "distance(meter)", y = "profit(CAD)") +
+    scale_fill_manual(
         name = "Model",
-        values = c("Population" = 16, "Trip-specific" = 17)
+        values = c("Population" = "#83bce6", "Trip-specific" = "#ff7f0e")
+    ) +
+    geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
+    scale_x_discrete(
+        labels = function(x) {
+            sapply(1:n_groups, function(i) {
+                start <- (i - 1) * 5000
+                end <- start + 5000
+                paste0("[", start, ",", end, ")")
+            })
+        }
     ) +
     theme(
+        axis.text.x = element_text(angle = 45, hjust = 1),
         text = element_text(size = rel(fontsize)),
         plot.title = element_text(size = rel(fontsize)),
         legend.text = element_text(size = rel(fontsize)),
