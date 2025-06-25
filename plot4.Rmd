@@ -496,3 +496,8 @@ plot8 <- ggplot(travel_time) +
   )
 plot8
 ```
+
+```{r}
+# save data
+write.csv(travel_time, file = "plot/plot_data/plot4_data.csv", row.names = FALSE)
+```

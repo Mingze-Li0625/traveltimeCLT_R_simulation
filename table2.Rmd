@@ -1,0 +1,87 @@
+---
+title: "Table 2"
+author: "Mingze Li"
+date: "2015-06-18"
+output:
+  pdf_document:
+    latex_engine: xelatex
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+library(traveltimeCLT)
+library(data.table)
+```
+
+```{r}
+trips <- fread("data/trips.csv")
+names(trips)[c(2, 3, 5, 7, 8)] <- c("tripID", "entry_time", "duration_secs", "distance_meters", "linkID")
+trips$speed <- exp(trips$logspeed)
+trips$timeBin <- time_bins_readable(trips$entry_time)
+set.seed(1234)
+id <- sample(unique(trips$trip), 1000)
+user_records <- trips[trips$trip %in% id, ]
+```
+
+```{r}
+user_data <- user_records[, .(
+    start_time = min(entry_time),
+    end_time = max(entry_time),
+    duration = sum(duration_secs),
+    distance = sum(distance_meters)
+), by = tripID]
+user_data$real_price <- price(user_data$duration, user_data$distance)[, 1]
+```
+```{r}
+fit1 <- traveltimeCLT(trips, "trip-specific")
+fit2 <- traveltimeCLT(trips, "population")
+p1 <- predict(fit1, user_records)
+p2 <- predict(fit2, user_records)
+R1 <- request_R(p1, user_data$start_time, user_data$start_time, user_data$distance, risk_free = 0)
+R2 <- request_R(p2, user_data$start_time, user_data$start_time, user_data$distance, risk_free = 0)
+K1 <- request_K(p1, user_data$start_time, user_data$start_time, user_data$distance, risk_free = 0)
+K2 <- request_K(p2, user_data$start_time, user_data$start_time, user_data$distance, risk_free = 0)
+user_data$payment_trip_specific <- R1 + K1
+user_data$payment_population <- R2 + K2
+```
+
+```{r}
+Model <- c(rep("Trip-Specific", 3), rep("Population", 3))
+Strike <- rep(c(1, exp(0.05), exp(0.1)), 2)
+Percentage_profit <- c(
+    mean(((R1 + 1 * K1) - user_data$real_price) / user_data$real_price),
+    mean(((R1 + exp(0.05) * K1) - user_data$real_price) / user_data$real_price),
+    mean(((R1 + exp(0.1) * K1) - user_data$real_price) / user_data$real_price),
+    mean(((R2 + 1 * K2) - user_data$real_price) / user_data$real_price),
+    mean(((R2 + exp(0.05) * K2) - user_data$real_price) / user_data$real_price),
+    mean(((R2 + exp(0.1) * K2) - user_data$real_price) / user_data$real_price)
+)
+Average_profit <- c(
+    mean((R1 + 1 * K1) - user_data$real_price),
+    mean((R1 + exp(0.05) * K1) - user_data$real_price),
+    mean((R1 + exp(0.1) * K1) - user_data$real_price),
+    mean((R2 + 1 * K2) - user_data$real_price),
+    mean((R2 + exp(0.05) * K2) - user_data$real_price),
+    mean((R2 + exp(0.1) * K2) - user_data$real_price)
+)
+Maximum_Loss <- c(
+    min((R1 + 1 * K1) - user_data$real_price),
+    min((R1 + exp(0.05) * K1) - user_data$real_price),
+    min((R1 + exp(0.1) * K1) - user_data$real_price),
+    min((R2 + 1 * K2) - user_data$real_price),
+    min((R2 + exp(0.05) * K2) - user_data$real_price),
+    min((R2 + exp(0.1) * K2) - user_data$real_price)
+)
+```
+
+```{r}
+table2 <- data.table(
+    Model = Model,
+    Strike = round(Strike, 3),
+    Percentage_Profit = round(Percentage_profit * 100, 5),
+    Average_Profit = round(Average_profit, 5),
+    Maximum_Loss = round(Maximum_Loss, 5)
+)
+table2
+```

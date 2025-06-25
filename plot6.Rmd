@@ -50,6 +50,11 @@ user_data$payment_population <- R2 + K2
 user_data$profit_trip_specific <- user_data$payment_trip_specific - user_data$real_price
 user_data$profit_population <- user_data$payment_population - user_data$real_price
 ```
+
+```{r}
+# save data
+write.csv(user_data, file = "plot/plot_data/plot6_data.csv", row.names = FALSE)
+```
 ```{r}
 fontsize <- 4.3
 breaks <- seq(0, 60000, 5000)
