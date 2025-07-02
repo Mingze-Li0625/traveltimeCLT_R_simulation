@@ -1,0 +1,133 @@
+---
+title: "Figure 4 right"
+author: "Mingze Li 300137754"
+date: "2025-07-02"
+output:
+  pdf_document:
+    latex_engine: xelatex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(traveltimeCLT)
+library(data.table)
+library(ggplot2)
+```
+
+```{r}
+trips <- fread("data/trips.csv")
+t <- fread("data/similarity_route_fiction.csv")
+set.seed(1234)
+id <- sample(unique(trips$trip), 2000)
+normal <- similar_route(id, trips, sigma_n = 2, significance = 0.95)
+real <- subset(trips, trip %in% id)
+```
+
+```{r}
+# get duration per trip in all three datasets
+normal_duration <- normal[, .(
+  duration = sum(exp(mean))
+), by = trip]
+real_duration <- real[, .(
+  duration = max(time) - min(time)
+), by = trip]
+t_duration <- t[, .(
+  duration = sum(exp(mean))
+), by = trip]
+# merge three datasets into one
+data <- merge(normal_duration, real_duration, by = "trip")
+names(data)[c(2, 3)] <- c("normal", "real")
+data <- merge(data, t_duration, by = "trip")
+names(data)[4] <- "t"
+# save the data into a csv file
+write.csv(data, "plot/plot_data/figure4_data_right.csv")
+```
+
+```{r}
+# draw CDF comparison plot
+data <- fread("plot/plot_data/figure4_data_right.csv")
+fontsize <- 4.3
+plot4_right <- ggplot(data) +
+  stat_ecdf(aes(x = real, color = "real_data", linetype = "real_data")) +
+  stat_ecdf(aes(x = normal, color = "normal", linetype = "normal")) +
+  stat_ecdf(aes(x = t, color = "t", linetype = "t")) +
+  labs(
+    title = "Empirical CDF Comparison",
+    x = "Total Travel Time (seconds)",
+    y = "Cumulative Probability"
+  ) +
+  coord_cartesian(xlim = c(0, 4000), ylim = c(0, 1)) +
+  scale_color_manual(
+    name = "Models",
+    values = c(
+      "real_data" = "red",
+      "normal" = "#aa10e7",
+      "t" = "#09ff00"
+    )
+  ) +
+  scale_linetype_manual(
+    name = "Models",
+    values = c(
+      "real_data" = "solid",
+      "normal" = "dashed",
+      "t" = "dotdash"
+    )
+  ) +
+  theme(
+    panel.background = element_rect(fill = "white", colour = "black", linewidth = 1),
+    panel.grid = element_line(colour = "white"),
+    panel.border = element_rect(colour = "black", fill = NA, linewidth = 1),
+    legend.position = c(0.98, 0.05),
+    legend.justification = c(1, 0),
+    text = element_text(size = rel(fontsize)),
+    plot.title = element_text(size = rel(fontsize)),
+    legend.text = element_text(size = rel(fontsize)),
+    legend.key = element_rect(fill = "white")
+  )
+plot4_right
+```
+
+```{r}
+# plot pdf comparison plot
+
+plot4_right <- ggplot(data) +
+  stat_density(aes(x = real, color = "real_data", linetype = "real_data"), geom = "line") +
+  stat_density(aes(x = normal, color = "normal", linetype = "normal"), geom = "line") +
+  stat_density(aes(x = t, color = "t", linetype = "t"), geom = "line") +
+  labs(
+    title = "Empirical PDF Comparison",
+    x = "Total Travel Time (seconds)",
+    y = "Density"
+  ) +
+  scale_color_manual(
+    name = "Models",
+    values = c(
+      "real_data" = "red",
+      "normal" = "#aa10e7",
+      "t" = "#09ff00"
+    )
+  ) +
+  scale_linetype_manual(
+    name = "Models",
+    values = c(
+      "real_data" = "solid",
+      "normal" = "dashed",
+      "t" = "dotdash"
+    )
+  ) +
+  theme(
+    panel.background = element_rect(fill = "white", colour = "black", linewidth = 1),
+    panel.grid = element_line(colour = "white"),
+    panel.border = element_rect(colour = "black", fill = NA, linewidth = 1),
+    legend.position = c(0.98, 0.05),
+    legend.justification = c(1, 0),
+    text = element_text(size = rel(fontsize)),
+    plot.title = element_text(size = rel(fontsize)),
+    legend.text = element_text(size = rel(fontsize)),
+    legend.key = element_rect(fill = "white")
+  )
+plot4_right
+```

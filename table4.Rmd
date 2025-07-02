@@ -1,7 +1,7 @@
 ---
-title: "Table 3"
+title: "Table 4"
 author: "Mingze Li"
-date: "2015-06-18"
+date: "2015-07-02"
 output:
   pdf_document:
     latex_engine: xelatex
@@ -45,11 +45,42 @@ test_data <- test_records[, .(
     duration = sum(duration_secs),
     distance = sum(distance_meters)
 ), by = tripID]
+
 test_data$real_price <- price(test_data$duration, test_data$distance)[, 1]
+```
+```{r}
+rider <- 1:100
+M <- seq(20, 40, 4)
+quantile <- c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
+# produce data table with M and quantile as groups, and every group contains all riders
+pressure_data <- data.table(
+    M = rep(M, each = length(quantile) * max(rider)),
+    quantile = rep(quantile, each = max(rider)),
+    rider = rep(rider, length(M) * length(quantile))
+)
+# for each row, repeat it for M times
+pressure_data <- pressure_data[, .(
+    i = seq(1, M, 1)
+), by = .(M, quantile, rider)]
+# sample from test_data with rplacement, the distance limited from quantile to 1.
+sampled_data <- pressure_data[,
+    {
+        q_value <- quantile(test_data$distance, probs = quantile)
+        valid_trips <- test_data[distance >= q_value & distance <= quantile(test_data$distance, probs = 1)]
+        sampled <- valid_trips[sample(.N, size = .N, replace = TRUE)]
+        cbind(.SD, sampled)
+    },
+    by = .(quantile)
+]
+# find the total cost for each rider, M and quantile
+cost_data <- sampled_data[, .(
+    total_cost = sum(real_price)
+), by = .(M, quantile, rider)]
 ```
 
 ```{r}
-My <- rbinom(150, 2, 2 / 3)
+# every rider has 40 records
+My <- 40
 bk <- sample(c("MorningRush", "EveningRush", "Otherwise"), sum(My) * 10, replace = TRUE)
 rho_k <- user_records[.(bk = bk),
     on = .(time_category = bk),
@@ -85,63 +116,26 @@ p2 <- merge(p2, simulated_data, by = c("tripID"), all.y = TRUE)
 ```{r}
 Rt_0 <- request_R(p1, p1$start_time, p1$start_time, p1$distance, risk_free = 0, zeta = 0)
 Rp_0 <- request_R(p2, p2$start_time, p2$start_time, p2$distance, risk_free = 0, zeta = 0)
-Rt_1 <- request_R(p1, p1$start_time, p1$start_time, p1$distance, risk_free = 0, zeta = 0.1)
-Rp_1 <- request_R(p2, p2$start_time, p2$start_time, p2$distance, risk_free = 0, zeta = 0.1)
 Kt <- request_K(p1, p1$start_time, p1$start_time, p1$distance, risk_free = 0)
 Kp <- request_K(p2, p2$start_time, p2$start_time, p2$distance, risk_free = 0)
-income_t_1 <- Rt_1 + Kt
-income_t_0 <- Rt_0 + Kt
-income_p_1 <- Rp_1 + Kp
-income_p_0 <- Rp_0 + Kp
+income_t <- mean(Rt_0 + Kt) * 40
+income_p <- mean(Rp_0 + Kp) * 40
 ```
 ```{r}
-daily_income_t_1 <- colMeans(
-    matrix(income_t_1, nrow = 5000)
-)
-daily_income_t_0 <- colMeans(
-    matrix(income_t_0, nrow = 5000)
-)
-daily_income_p_1 <- colMeans(
-    matrix(income_p_1, nrow = 5000)
-)
-daily_income_p_0 <- colMeans(
-    matrix(income_p_0, nrow = 5000)
-)
-
-P <- test_data$real_price
+# find percentage of profit for each rider
+cost_data$percentage_profit <- (income_t - cost_data$total_cost) / cost_data$total_cost
+cost_data$profit <- income_t - cost_data$total_cost
+# find the average and variance of percentage of profit at different M and quantile
+cost_stats_table <- cost_data[, .(
+    mean = mean(percentage_profit),
+    variance = var(profit)
+), by = .(M, quantile)]
 ```
 
 ```{r}
-Model <- c(rep("Trip-Specific", 2), rep("Population", 2))
-Cutoff <- rep(c(0, 0.1), 2)
-Percentage_profit <- c(
-    (sum(daily_income_t_0) - sum(P)) / sum(P),
-    (sum(daily_income_t_1) - sum(P)) / sum(P),
-    (sum(daily_income_p_0) - sum(P)) / sum(P),
-    (sum(daily_income_p_1) - sum(P)) / sum(P)
-)
-Average_profit <- c(
-    (sum(daily_income_t_0) - sum(P)) / length(P),
-    (sum(daily_income_t_1) - sum(P)) / length(P),
-    (sum(daily_income_p_0) - sum(P)) / length(P),
-    (sum(daily_income_p_1) - sum(P)) / length(P)
-)
-l <- min(length(daily_income_t_0), length(P))
-Maximum_Loss <- c(
-    min(daily_income_t_0[1:l] - P[1:l]),
-    min(daily_income_t_1[1:l] - P[1:l]),
-    min(daily_income_p_0[1:l] - P[1:l]),
-    min(daily_income_p_1[1:l] - P[1:l])
-)
-```
-
-```{r}
-table3 <- data.table(
-    Model = Model,
-    Cutoff = Cutoff,
-    Percentage_Profit = round(Percentage_profit * 100, 5),
-    Average_Profit = round(Average_profit, 5),
-    Maximum_Loss = round(Maximum_Loss, 5)
-)
-table3
+# reshape the data to draw the table
+table4_mean <- dcast(cost_stats_table, M ~ quantile, value.var = "mean")
+table4_variance <- dcast(cost_stats_table, M ~ quantile, value.var = "variance")
+table4_mean
+table4_variance
 ```

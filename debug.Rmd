@@ -112,8 +112,8 @@ p=predict(fit, test)
 
 ```{r}
 Rprof("profile.out")
-s=similarity_route_fiction(c(1:1000),r=3, trips, significance=0.05)
-#similarity_route_fiction(c(2700,2701), trips,r=5, significance=0.05)
+s=similar_route(c(1:1000),r=3, trips, significance=0.05)
+#similar_route(c(2700,2701), trips,r=5, significance=0.05)
 Rprof(NULL)
 summaryRprof("profile.out")
 #check if s have NAs

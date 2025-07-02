@@ -1,0 +1,62 @@
+---
+title: "Figure 4 right"
+author: "Mingze Li 300137754"
+date: "2025-07-02"
+output:
+  pdf_document:
+    latex_engine: xelatex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+data <- fread("plot/plot_data/figure4_data_right.csv")
+```
+
+```{r}
+# draw CDF comparison plot
+
+fontsize <- 4.3
+plot4_right <- ggplot(data) +
+    stat_ecdf(aes(x = real, color = "real_data", linetype = "real_data")) +
+    stat_ecdf(aes(x = normal, color = "normal", linetype = "normal")) +
+    stat_ecdf(aes(x = t, color = "t", linetype = "t")) +
+    labs(
+        title = "Empirical CDF Comparison",
+        x = "Total Travel Time (seconds)",
+        y = "Cumulative Probability"
+    ) +
+    coord_cartesian(xlim = c(0, 4000), ylim = c(0, 1)) +
+    scale_color_manual(
+        name = "Models",
+        values = c(
+            "real_data" = "red",
+            "normal" = "#aa10e7",
+            "t" = "#09ff00"
+        )
+    ) +
+    scale_linetype_manual(
+        name = "Models",
+        values = c(
+            "real_data" = "solid",
+            "normal" = "dashed",
+            "t" = "dotdash"
+        )
+    ) +
+    theme(
+        panel.background = element_rect(fill = "white", colour = "black", linewidth = 1),
+        panel.grid = element_line(colour = "white"),
+        panel.border = element_rect(colour = "black", fill = NA, linewidth = 1),
+        legend.position = c(0.98, 0.05),
+        legend.justification = c(1, 0),
+        text = element_text(size = rel(fontsize)),
+        plot.title = element_text(size = rel(fontsize)),
+        legend.text = element_text(size = rel(fontsize)),
+        legend.key = element_rect(fill = "white")
+    )
+plot4_right
+```
