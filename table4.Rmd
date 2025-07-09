@@ -16,6 +16,7 @@ library(data.table)
 
 ```{r}
 trips <- fread("data/trips.csv")
+trips2 <- fread("data/trips.csv")
 names(trips)[c(2, 3, 5, 7, 8)] <- c("tripID", "entry_time", "duration_secs", "distance_meters", "linkID")
 trips$speed <- exp(trips$logspeed)
 trips$timeBin <- time_bins_readable(trips$entry_time)
@@ -26,6 +27,7 @@ train_id <- setdiff(id, test_id)
 user_records <- subset(trips, tripID %in% train_id)
 test_records <- subset(trips, tripID %in% test_id)
 study_records <- subset(trips, !tripID %in% test_id)
+trips2 <- subset(trips2, !trip %in% test_id)
 ```
 
 ```{r}
@@ -51,7 +53,7 @@ test_data$real_price <- price(test_data$duration, test_data$distance)[, 1]
 ```{r}
 rider <- 1:100
 M <- seq(20, 40, 4)
-quantile <- c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
+quantile <- c(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
 # produce data table with M and quantile as groups, and every group contains all riders
 pressure_data <- data.table(
     M = rep(M, each = length(quantile) * max(rider)),
@@ -66,21 +68,35 @@ pressure_data <- pressure_data[, .(
 sampled_data <- pressure_data[,
     {
         q_value <- quantile(test_data$distance, probs = quantile)
-        valid_trips <- test_data[distance >= q_value & distance <= quantile(test_data$distance, probs = 1)]
-        sampled <- valid_trips[sample(.N, size = .N, replace = TRUE)]
+        valid_trips <- test_data[distance >= q_value]
+        sampled <- valid_trips[sample(1:nrow(valid_trips), size = nrow(.SD), replace = TRUE)]
         cbind(.SD, sampled)
     },
     by = .(quantile)
 ]
-# find the total cost for each rider, M and quantile
-cost_data <- sampled_data[, .(
-    total_cost = sum(real_price)
-), by = .(M, quantile, rider)]
 ```
 
 ```{r}
-# every rider has 40 records
-My <- 40
+simulated_record <- similar_route(train_id, trips2, sigma_n = 2, significance = 0.6)
+names(simulated_record)[c(2, 3, 8)] <- c("tripID", "linkID", "distance_meters")
+# simulated_record <- pressure_test1(train_id, trips2)[[3]]
+# names(simulated_record)[c(1,2,4)] <- c("tripID", "linkID", "distance_meters")
+simulated_record$entry_time <- simulated_record[
+    ,
+    entry_time := as.POSIXct(rep(runif(1, min = min(user_data$start_time), max = max(user_data$start_time)), nrow(.SD))),
+    tripID
+]
+simulated_data <- simulated_record[, .(
+    distance = sum(distance_meters),
+    start_time = min(entry_time)
+), by = tripID]
+multipler <- 49 / 100
+```
+
+```
+multipler <- 5 # indicate how many times the simulation should be repeated
+# every rider bought 40 rides
+My <- 40 * multipler
 bk <- sample(c("MorningRush", "EveningRush", "Otherwise"), sum(My) * 10, replace = TRUE)
 rho_k <- user_records[.(bk = bk),
     on = .(time_category = bk),
@@ -95,7 +111,7 @@ simulated_record <- user_records[temp_dt,
 ]
 rm(temp_dt)
 simulated_data <- simulated_record[, .(
-    tripID = rep(tripID[1], 100),
+    tripID = rep(tripID[1], 10),
     distance = rep(sum(distance_meters))
 ), by = i]
 simulated_data$start_time <- as.POSIXct(runif(nrow(simulated_data), min = min(user_data$start_time), max = max(user_data$start_time)))
@@ -114,28 +130,44 @@ p2 <- merge(p2, simulated_data, by = c("tripID"), all.y = TRUE)
 ```
 
 ```{r}
+group_mean <- function(x, group_size) {
+    dt <- data.table(x)
+    names(dt) <- "value"
+    dt[, chunk := (seq_len(.N) - 1) %/% group_size]
+    Kt_sum_dt <- dt[, .(mean_value = sum(value) / group_size), by = chunk]$mean_value
+    return(Kt_sum_dt)
+}
+group_max <- function(x, group_size) {
+    dt <- data.table(x)
+    names(dt) <- "value"
+    dt[, chunk := (seq_len(.N) - 1) %/% group_size]
+    Kt_sum_dt <- dt[, .(max_value = max(value)), by = chunk]$max_value
+    return(Kt_sum_dt)
+}
+```
+
+```{r}
 Rt_0 <- request_R(p1, p1$start_time, p1$start_time, p1$distance, risk_free = 0, zeta = 0)
 Rp_0 <- request_R(p2, p2$start_time, p2$start_time, p2$distance, risk_free = 0, zeta = 0)
 Kt <- request_K(p1, p1$start_time, p1$start_time, p1$distance, risk_free = 0)
 Kp <- request_K(p2, p2$start_time, p2$start_time, p2$distance, risk_free = 0)
-income_t <- mean(Rt_0 + Kt) * 40
-income_p <- mean(Rp_0 + Kp) * 40
-```
-```{r}
-# find percentage of profit for each rider
-cost_data$percentage_profit <- (income_t - cost_data$total_cost) / cost_data$total_cost
-cost_data$profit <- income_t - cost_data$total_cost
-# find the average and variance of percentage of profit at different M and quantile
-cost_stats_table <- cost_data[, .(
-    mean = mean(percentage_profit),
-    variance = var(profit)
+Rt_0 <- mean(group_mean(Rt_0, 100 * multipler))
+Kt <- mean(group_max(Kt, 100 * multipler))
+profit <- sampled_data[, .(
+    profit = Rt_0 * 40 + sum(pmin(Kt - real_price, 0)),
+    expand = sum((real_price))
+), by = .(M, quantile, rider)]
+cost_stats_table <- profit[, .(
+    mean = mean((profit) / expand * 100, na.rm = TRUE),
+    variance = var(profit) / sqrt(40)
 ), by = .(M, quantile)]
 ```
 
+
 ```{r}
 # reshape the data to draw the table
-table4_mean <- dcast(cost_stats_table, M ~ quantile, value.var = "mean")
-table4_variance <- dcast(cost_stats_table, M ~ quantile, value.var = "variance")
-table4_mean
-table4_variance
+table4 <- dcast(cost_stats_table, M ~ quantile, value.var = "mean")
+table5 <- dcast(cost_stats_table, M ~ quantile, value.var = "variance")
+table4
+table5
 ```

@@ -33,6 +33,8 @@ user_data <- user_records[, .(
 ), by = tripID]
 user_data$real_price <- price(user_data$duration, user_data$distance)[, 1]
 ```
+
+
 ```{r}
 fit1 <- traveltimeCLT(trips, "trip-specific")
 fit2 <- traveltimeCLT(trips, "population")
@@ -42,36 +44,35 @@ R1 <- request_R(p1, user_data$start_time, user_data$start_time, user_data$distan
 R2 <- request_R(p2, user_data$start_time, user_data$start_time, user_data$distance, risk_free = 0)
 K1 <- request_K(p1, user_data$start_time, user_data$start_time, user_data$distance, risk_free = 0)
 K2 <- request_K(p2, user_data$start_time, user_data$start_time, user_data$distance, risk_free = 0)
-user_data$payment_trip_specific <- R1 + K1
-user_data$payment_population <- R2 + K2
+R1 <- group_mean(R1, 1000)
 ```
 
 ```{r}
 Model <- c(rep("Trip-Specific", 3), rep("Population", 3))
 Strike <- rep(c(1, exp(0.05), exp(0.1)), 2)
 Percentage_profit <- c(
-    mean(((R1 + 1 * K1) - user_data$real_price) / user_data$real_price),
-    mean(((R1 + exp(0.05) * K1) - user_data$real_price) / user_data$real_price),
-    mean(((R1 + exp(0.1) * K1) - user_data$real_price) / user_data$real_price),
-    mean(((R2 + 1 * K2) - user_data$real_price) / user_data$real_price),
-    mean(((R2 + exp(0.05) * K2) - user_data$real_price) / user_data$real_price),
-    mean(((R2 + exp(0.1) * K2) - user_data$real_price) / user_data$real_price)
+    mean((R1 + pmin(1 * K1 - user_data$real_price, 0)) / user_data$real_price),
+    mean((R1 + pmin(exp(0.05) * K1 - user_data$real_price, 0)) / user_data$real_price),
+    mean((R1 + pmin(exp(0.1) * K1 - user_data$real_price, 0)) / user_data$real_price),
+    mean((R2 + pmin(1 * K2 - user_data$real_price, 0)) / user_data$real_price),
+    mean((R2 + pmin(exp(0.05) * K2 - user_data$real_price, 0)) / user_data$real_price),
+    mean((R2 + pmin(exp(0.1) * K2 - user_data$real_price, 0)) / user_data$real_price)
 )
 Average_profit <- c(
-    mean((R1 + 1 * K1) - user_data$real_price),
-    mean((R1 + exp(0.05) * K1) - user_data$real_price),
-    mean((R1 + exp(0.1) * K1) - user_data$real_price),
-    mean((R2 + 1 * K2) - user_data$real_price),
-    mean((R2 + exp(0.05) * K2) - user_data$real_price),
-    mean((R2 + exp(0.1) * K2) - user_data$real_price)
+    mean(R1 + pmin(1 * K1 - user_data$real_price), 0),
+    mean(R1 + pmin(exp(0.05) * K1 - user_data$real_price, 0)),
+    mean(R1 + pmin(exp(0.1) * K1 - user_data$real_price, 0)),
+    mean(R2 + pmin(1 * K2 - user_data$real_price, 0)),
+    mean(R2 + pmin(exp(0.05) * K2 - user_data$real_price, 0)),
+    mean(R2 + pmin(exp(0.1) * K2 - user_data$real_price, 0))
 )
 Maximum_Loss <- c(
-    min((R1 + 1 * K1) - user_data$real_price),
-    min((R1 + exp(0.05) * K1) - user_data$real_price),
-    min((R1 + exp(0.1) * K1) - user_data$real_price),
-    min((R2 + 1 * K2) - user_data$real_price),
-    min((R2 + exp(0.05) * K2) - user_data$real_price),
-    min((R2 + exp(0.1) * K2) - user_data$real_price)
+    min((R1 + pmin(1 * K1 - user_data$real_price, 0))),
+    min((R1 + pmin(exp(0.05) * K1 - user_data$real_price, 0))),
+    min((R1 + pmin(exp(0.1) * K1 - user_data$real_price, 0))),
+    min((R2 + pmin(1 * K2 - user_data$real_price, 0))),
+    min((R2 + pmin(exp(0.05) * K2 - user_data$real_price, 0))),
+    min((R2 + pmin(exp(0.1) * K2 - user_data$real_price, 0)))
 )
 ```
 
