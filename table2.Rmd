@@ -20,7 +20,7 @@ names(trips)[c(2, 3, 5, 7, 8)] <- c("tripID", "entry_time", "duration_secs", "di
 trips$speed <- exp(trips$logspeed)
 trips$timeBin <- time_bins_readable(trips$entry_time)
 set.seed(1234)
-id <- sample(unique(trips$trip), 1000)
+id <- sample(unique(trips$trip), 10000)
 user_records <- trips[trips$trip %in% id, ]
 ```
 
@@ -35,44 +35,100 @@ user_data$real_price <- price(user_data$duration, user_data$distance)[, 1]
 ```
 
 
+
+
 ```{r}
-fit1 <- traveltimeCLT(trips, "trip-specific")
-fit2 <- traveltimeCLT(trips, "population")
-p1 <- predict(fit1, user_records)
-p2 <- predict(fit2, user_records)
-R1 <- request_R(p1, user_data$start_time, user_data$start_time, user_data$distance, risk_free = 0)
-R2 <- request_R(p2, user_data$start_time, user_data$start_time, user_data$distance, risk_free = 0)
-K1 <- request_K(p1, user_data$start_time, user_data$start_time, user_data$distance, risk_free = 0)
-K2 <- request_K(p2, user_data$start_time, user_data$start_time, user_data$distance, risk_free = 0)
-R1 <- group_mean(R1, 1000)
+fit_t <- traveltimeCLT(trips, "trip-specific")
+fit_p <- traveltimeCLT(trips, "population")
+pt <- predict(fit_t, user_records)
+pp <- predict(fit_p, user_records)
+```
+```{r}
+Rt1 <- request_R(pt, user_data$start_time, user_data$start_time, user_data$distance, K = 1, risk_free = 0)
+Rt2 <- request_R(pt, user_data$start_time, user_data$start_time, user_data$distance, K = exp(0.05), risk_free = 0)
+Rt3 <- request_R(pt, user_data$start_time, user_data$start_time, user_data$distance, K = exp(0.1), risk_free = 0)
+Rp1 <- request_R(pp, user_data$start_time, user_data$start_time, user_data$distance, K = 1, risk_free = 0)
+Rp2 <- request_R(pp, user_data$start_time, user_data$start_time, user_data$distance, K = exp(0.05), risk_free = 0)
+Rp3 <- request_R(pp, user_data$start_time, user_data$start_time, user_data$distance, K = exp(0.1), risk_free = 0)
+Rt01 <- request_R(pt, user_data$start_time, user_data$start_time, user_data$distance, K = 0.01, risk_free = 0)
+Rp01 <- request_R(pp, user_data$start_time, user_data$start_time, user_data$distance, K = 0.01, risk_free = 0)
+Kt1 <- request_K(pt, user_data$distance, discount_factor = 1)
+Kt2 <- request_K(pt, user_data$distance, discount_factor = exp(0.05))
+Kt3 <- request_K(pt, user_data$distance, discount_factor = exp(0.1))
+Kp1 <- request_K(pp, user_data$distance, discount_factor = 1)
+Kp2 <- request_K(pp, user_data$distance, discount_factor = exp(0.05))
+Kp3 <- request_K(pp, user_data$distance, discount_factor = exp(0.1))
+Kt01 <- request_K(pt, user_data$distance, discount_factor = 0.01)
+Kp01 <- request_K(pp, user_data$distance, discount_factor = 0.01)
+P <- user_data$real_price
+Rt1 <- na.omit(Rt1)
+Rt2 <- na.omit(Rt2)
+Rt3 <- na.omit(Rt3)
+Rt01 <- na.omit(Rt01)
 ```
 
 ```{r}
-Model <- c(rep("Trip-Specific", 3), rep("Population", 3))
-Strike <- rep(c(1, exp(0.05), exp(0.1)), 2)
+Model <- c(rep("Trip-Specific", 4), rep("Population", 4))
+Strike <- rep(c(1, exp(0.05), exp(0.1), 0.01), 2)
 Percentage_profit <- c(
-    mean((R1 + pmin(1 * K1 - user_data$real_price, 0)) / user_data$real_price),
-    mean((R1 + pmin(exp(0.05) * K1 - user_data$real_price, 0)) / user_data$real_price),
-    mean((R1 + pmin(exp(0.1) * K1 - user_data$real_price, 0)) / user_data$real_price),
-    mean((R2 + pmin(1 * K2 - user_data$real_price, 0)) / user_data$real_price),
-    mean((R2 + pmin(exp(0.05) * K2 - user_data$real_price, 0)) / user_data$real_price),
-    mean((R2 + pmin(exp(0.1) * K2 - user_data$real_price, 0)) / user_data$real_price)
+    mean((Rt1 - pmax(P - Kt1, 0)) / P) * 100,
+    mean((Rt2 - pmax(P - Kt2, 0)) / P) * 100,
+    mean((Rt3 - pmax(P - Kt3, 0)) / P) * 100,
+    mean((Rt01 - pmax(P - Kt01, 0)) / P) * 100,
+    mean((Rp1 - pmax(P - Kp1, 0)) / P) * 100,
+    mean((Rp2 - pmax(P - Kp2, 0)) / P) * 100,
+    mean((Rp3 - pmax(P - Kp3, 0)) / P) * 100,
+    mean((Rp01 - pmax(P - Kp01, 0)) / P) * 100
 )
 Average_profit <- c(
-    mean(R1 + pmin(1 * K1 - user_data$real_price), 0),
-    mean(R1 + pmin(exp(0.05) * K1 - user_data$real_price, 0)),
-    mean(R1 + pmin(exp(0.1) * K1 - user_data$real_price, 0)),
-    mean(R2 + pmin(1 * K2 - user_data$real_price, 0)),
-    mean(R2 + pmin(exp(0.05) * K2 - user_data$real_price, 0)),
-    mean(R2 + pmin(exp(0.1) * K2 - user_data$real_price, 0))
+    mean(Rt1 - pmax(P - Kt1, 0)),
+    mean(Rt2 - pmax(P - Kt2, 0)),
+    mean(Rt3 - pmax(P - Kt3, 0)),
+    mean(Rt01 - pmax(P - Kt01, 0)),
+    mean(Rp1 - pmax(P - Kp1, 0)),
+    mean(Rp2 - pmax(P - Kp2, 0)),
+    mean(Rp3 - pmax(P - Kp3, 0)),
+    mean(Rp01 - pmax(P - Kp01, 0))
 )
 Maximum_Loss <- c(
-    min((R1 + pmin(1 * K1 - user_data$real_price, 0))),
-    min((R1 + pmin(exp(0.05) * K1 - user_data$real_price, 0))),
-    min((R1 + pmin(exp(0.1) * K1 - user_data$real_price, 0))),
-    min((R2 + pmin(1 * K2 - user_data$real_price, 0))),
-    min((R2 + pmin(exp(0.05) * K2 - user_data$real_price, 0))),
-    min((R2 + pmin(exp(0.1) * K2 - user_data$real_price, 0)))
+    min(Rt1 - pmax(P - Kt1, 0)),
+    min(Rt2 - pmax(P - Kt2, 0)),
+    min(Rt3 - pmax(P - Kt3, 0)),
+    min(Rt01 - pmax(P - Kt01, 0)),
+    min(Rp1 - pmax(P - Kp1, 0)),
+    min(Rp2 - pmax(P - Kp2, 0)),
+    min(Rp3 - pmax(P - Kp3, 0)),
+    min(Rp01 - pmax(P - Kp01, 0))
+)
+Average_premium <- c(
+    mean(Rt1),
+    mean(Rt2),
+    mean(Rt3),
+    mean(Rt01),
+    mean(Rp1),
+    mean(Rp2),
+    mean(Rp3),
+    mean(Rp01)
+)
+Average_pct_premium_to_P <- c(
+    mean(Rt1 / P) * 100,
+    mean(Rt2 / P) * 100,
+    mean(Rt3 / P) * 100,
+    mean(Rt01 / P) * 100,
+    mean(Rp1 / P) * 100,
+    mean(Rp2 / P) * 100,
+    mean(Rp3 / P) * 100,
+    mean(Rp01 / P) * 100
+)
+Total_trips <- c(
+    length(Rt1),
+    length(Rt2),
+    length(Rt3),
+    length(Rt01),
+    length(Rp1),
+    length(Rp2),
+    length(Rp3),
+    length(Rp01)
 )
 ```
 
@@ -80,9 +136,12 @@ Maximum_Loss <- c(
 table2 <- data.table(
     Model = Model,
     Strike = round(Strike, 3),
-    Percentage_Profit = round(Percentage_profit * 100, 5),
+    Percentage_Profit = round(Percentage_profit, 5),
     Average_Profit = round(Average_profit, 5),
-    Maximum_Loss = round(Maximum_Loss, 5)
+    Maximum_Loss = round(Maximum_Loss, 5),
+    Average_Premium = round(Average_premium, 5),
+    Average_PCT_Premium_to_P = round(Average_pct_premium_to_P, 5),
+    Total_Trips = Total_trips
 )
 table2
 ```

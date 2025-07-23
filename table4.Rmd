@@ -14,20 +14,20 @@ library(traveltimeCLT)
 library(data.table)
 ```
 
-```{r}
+```{r}\
+test_size <- 100 # number of trips for test set
 trips <- fread("data/trips.csv")
 trips2 <- fread("data/trips.csv")
 names(trips)[c(2, 3, 5, 7, 8)] <- c("tripID", "entry_time", "duration_secs", "distance_meters", "linkID")
 trips$speed <- exp(trips$logspeed)
 trips$timeBin <- time_bins_readable(trips$entry_time)
 set.seed(1234)
-id <- sample(unique(trips$trip), 2000)
-test_id <- sample(id, 40)
+id <- sample(unique(trips$trip), test_size * 50)
+test_id <- sample(id, test_size)
 train_id <- setdiff(id, test_id)
 user_records <- subset(trips, tripID %in% train_id)
 test_records <- subset(trips, tripID %in% test_id)
 study_records <- subset(trips, !tripID %in% test_id)
-trips2 <- subset(trips2, !trip %in% test_id)
 ```
 
 ```{r}
@@ -51,7 +51,7 @@ test_data <- test_records[, .(
 test_data$real_price <- price(test_data$duration, test_data$distance)[, 1]
 ```
 ```{r}
-rider <- 1:100
+rider <- 1:test_size
 M <- seq(20, 40, 4)
 quantile <- c(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
 # produce data table with M and quantile as groups, and every group contains all riders
@@ -77,30 +77,13 @@ sampled_data <- pressure_data[,
 ```
 
 ```{r}
-simulated_record <- similar_route(train_id, trips2, sigma_n = 2, significance = 0.6)
-names(simulated_record)[c(2, 3, 8)] <- c("tripID", "linkID", "distance_meters")
-# simulated_record <- pressure_test1(train_id, trips2)[[3]]
-# names(simulated_record)[c(1,2,4)] <- c("tripID", "linkID", "distance_meters")
-simulated_record$entry_time <- simulated_record[
-    ,
-    entry_time := as.POSIXct(rep(runif(1, min = min(user_data$start_time), max = max(user_data$start_time)), nrow(.SD))),
-    tripID
-]
-simulated_data <- simulated_record[, .(
-    distance = sum(distance_meters),
-    start_time = min(entry_time)
-), by = tripID]
-multipler <- 49 / 100
-```
-
-```
-multipler <- 5 # indicate how many times the simulation should be repeated
+multipler <- 1 # indicate how many times the simulation should be repeated
 # every rider bought 40 rides
-My <- 40 * multipler
+My <- test_size * multipler
 bk <- sample(c("MorningRush", "EveningRush", "Otherwise"), sum(My) * 10, replace = TRUE)
 rho_k <- user_records[.(bk = bk),
     on = .(time_category = bk),
-    .(sample(unique(tripID), 1, replace = TRUE)),
+    .(rep(sample(unique(tripID), 1, replace = TRUE), 10)),
     by = .EACHI
 ]$V1
 temp_dt <- data.table(tripID = rho_k, i = seq_along(rho_k))
@@ -110,11 +93,16 @@ simulated_record <- user_records[temp_dt,
     allow.cartesian = TRUE
 ]
 rm(temp_dt)
+names(simulated_record)[c(2, ncol(simulated_record))] <- c("trip", "tripID")
+start_time <- runif(max(simulated_record$tripID), min = min(test_data$start_time), max = max(test_data$start_time))
+start_time <- as.POSIXct(start_time)
+simulated_record$entry_time <- start_time[simulated_record$tripID]
 simulated_data <- simulated_record[, .(
-    tripID = rep(tripID[1], 10),
-    distance = rep(sum(distance_meters))
-), by = i]
-simulated_data$start_time <- as.POSIXct(runif(nrow(simulated_data), min = min(user_data$start_time), max = max(user_data$start_time)))
+    trip = unique(trip),
+    start_time = min(entry_time),
+    distance = sum(distance_meters),
+    duration = sum(duration_secs)
+), by = tripID]
 ```
 
 
@@ -149,18 +137,21 @@ group_max <- function(x, group_size) {
 ```{r}
 Rt_0 <- request_R(p1, p1$start_time, p1$start_time, p1$distance, risk_free = 0, zeta = 0)
 Rp_0 <- request_R(p2, p2$start_time, p2$start_time, p2$distance, risk_free = 0, zeta = 0)
-Kt <- request_K(p1, p1$start_time, p1$start_time, p1$distance, risk_free = 0)
-Kp <- request_K(p2, p2$start_time, p2$start_time, p2$distance, risk_free = 0)
-Rt_0 <- mean(group_mean(Rt_0, 100 * multipler))
-Kt <- mean(group_max(Kt, 100 * multipler))
+Kt <- request_K(p1, p1$distance)
+Kp <- request_K(p2, p2$distance)
+Rt_0 <- na.omit(Rt_0)
+Rt_0 <- mean(group_mean(Rt_0, 100 * multipler)) * 1
+
+Kt <- mean(group_mean(Kt, 100 * multipler)) * 1
 profit <- sampled_data[, .(
     profit = Rt_0 * 40 + sum(pmin(Kt - real_price, 0)),
     expand = sum((real_price))
 ), by = .(M, quantile, rider)]
 cost_stats_table <- profit[, .(
-    mean = mean((profit) / expand * 100, na.rm = TRUE),
+    mean = mean((profit) / expand * test_size, na.rm = TRUE),
     variance = var(profit) / sqrt(40)
 ), by = .(M, quantile)]
+# table(sampled_data$real_price)
 ```
 
 
