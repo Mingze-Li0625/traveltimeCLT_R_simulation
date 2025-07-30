@@ -20,7 +20,7 @@ names(trips)[c(2, 3, 5, 7, 8)] <- c("tripID", "entry_time", "duration_secs", "di
 trips$speed <- exp(trips$logspeed)
 trips$timeBin <- time_bins_readable(trips$entry_time)
 set.seed(1234)
-id <- sample(unique(trips$trip), 10000)
+id <- sample(unique(trips$trip), 100)
 user_records <- trips[trips$trip %in% id, ]
 ```
 
@@ -43,38 +43,45 @@ pp <- predict(fit_p, user_records)
 ```
 
 ```{r}
+zeta <- 0.1
 Rt0 <- request_R(pt, user_data$start_time, user_data$start_time, user_data$distance, K = 0.9, zeta = 0, risk_free = 0)
-Rt1 <- request_R(pt, user_data$start_time, user_data$start_time, user_data$distance, K = 0.9, zeta = 0.1, risk_free = 0)
+Rt1 <- request_R(pt, user_data$start_time, user_data$start_time, user_data$distance, K = 0.9, zeta = zeta, risk_free = 0)
 Rp0 <- request_R(pp, user_data$start_time, user_data$start_time, user_data$distance, K = 0.9, zeta = 0, risk_free = 0)
-Rp1 <- request_R(pp, user_data$start_time, user_data$start_time, user_data$distance, K = 0.9, zeta = 0.1, risk_free = 0)
+Rp1 <- request_R(pp, user_data$start_time, user_data$start_time, user_data$distance, K = 0.9, zeta = zeta, risk_free = 0)
 Kt <- request_K(pt, user_data$distance, discount_factor = 0.9)
 Kp <- request_K(pp, user_data$distance, discount_factor = 0.9)
 P <- user_data$real_price
-Rt0 <- na.omit(Rt0)
-Rt1 <- na.omit(Rt1)
+Pt <- P
+if (any(is.na(Rt0))) {
+    na_index <- which(is.na(Rt0))
+    Rt0 <- Rt0[-na_index]
+    Rt1 <- Rt1[-na_index]
+    Kt <- Kt[-na_index]
+    Pt <- Pt[-na_index]
+}
 ```
 
 
 ```{r}
 Model <- c(rep("Trip-Specific", 2), rep("Population", 2))
-Cutoff <- rep(c(0, 0.1), 2)
+Cutoff <- rep(c(0, zeta), 2)
 Percentage_profit <- c(
-    mean((Rt0 - pmax(P - Kt, 0)) / P * 100),
-    mean((Rt1 - pmax(P - Kt, 0)) / P * 100),
+    mean((Rt0 - pmax(Pt - Kt, 0)) / Pt * 100),
+    mean((Rt1 - (Pt >= Kt * (zeta + 1)) * pmax(Pt - Kt, 0)) / Pt * 100),
     mean((Rp0 - pmax(P - Kp, 0)) / P * 100),
-    mean((Rp1 - pmax(P - Kp, 0)) / P * 100)
+    mean((Rp1 - (P >= Kp * (zeta + 1)) * pmax(P - Kp, 0)) / P * 100)
 )
 Average_profit <- c(
-    mean((Rt0 - pmax(P - Kt, 0))),
-    mean((Rt1 - pmax(P - Kt, 0))),
+    mean((Rt0 - pmax(Pt - Kt, 0))),
+    mean((Rt1 - (Pt >= Kt * (zeta + 1)) * pmax(Pt - Kt, 0))),
     mean((Rp0 - pmax(P - Kp, 0))),
-    mean((Rp1 - pmax(P - Kp, 0)))
+    mean((Rp1 - (P >= Kp * (zeta + 1)) * pmax(P - Kp, 0)))
 )
 Maximum_Loss <- c(
-    min((Rt0 - pmax(P - Kt, 0))),
-    min((Rt1 - pmax(P - Kt, 0))),
+    min((Rt0 - pmax(Pt - Kt, 0))),
+    min((Rt1 - (Pt >= Kt * (zeta + 1)) * pmax(Pt - Kt, 0))),
     min((Rp0 - pmax(P - Kp, 0))),
-    min((Rp1 - pmax(P - Kp, 0)))
+    min((Rp1 - (P >= Kp * (zeta + 1)) * pmax(P - Kp, 0)))
 )
 Average_premium <- c(
     mean(Rt0),
@@ -83,8 +90,8 @@ Average_premium <- c(
     mean(Rp1)
 )
 Average_pct_premium_to_P <- c(
-    mean(Rt0 / P) * 100,
-    mean(Rt1 / P) * 100,
+    mean(Rt0 / Pt) * 100,
+    mean(Rt1 / Pt) * 100,
     mean(Rp0 / P) * 100,
     mean(Rp1 / P) * 100
 )

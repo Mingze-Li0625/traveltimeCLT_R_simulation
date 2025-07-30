@@ -14,8 +14,8 @@ library(traveltimeCLT)
 library(data.table)
 ```
 
-```{r}\
-test_size <- 100 # number of trips for test set
+```{r}
+test_size <- 40 # number of trips for test set
 trips <- fread("data/trips.csv")
 trips2 <- fread("data/trips.csv")
 names(trips)[c(2, 3, 5, 7, 8)] <- c("tripID", "entry_time", "duration_secs", "distance_meters", "linkID")
@@ -51,8 +51,8 @@ test_data <- test_records[, .(
 test_data$real_price <- price(test_data$duration, test_data$distance)[, 1]
 ```
 ```{r}
-rider <- 1:test_size
-M <- seq(20, 40, 4)
+rider <- 1:100
+M <- seq(0, floor(test_size * 0.5), floor(test_size * 0.1))
 quantile <- c(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
 # produce data table with M and quantile as groups, and every group contains all riders
 pressure_data <- data.table(
@@ -60,25 +60,30 @@ pressure_data <- data.table(
     quantile = rep(quantile, each = max(rider)),
     rider = rep(rider, length(M) * length(quantile))
 )
-# for each row, repeat it for M times
+# for each row, repeat it for test_size times
 pressure_data <- pressure_data[, .(
-    i = seq(1, M, 1)
+    i = seq(1, test_size, 1)
 ), by = .(M, quantile, rider)]
-# sample from test_data with rplacement, the distance limited from quantile to 1.
+# sample from test_data with replacement, the distance limited from quantile to 1.
 sampled_data <- pressure_data[,
     {
         q_value <- quantile(test_data$distance, probs = quantile)
-        valid_trips <- test_data[distance >= q_value]
-        sampled <- valid_trips[sample(1:nrow(valid_trips), size = nrow(.SD), replace = TRUE)]
+        abuse_trips <- test_data[distance >= q_value]
+        abuse_sample <- abuse_trips[sample(1:nrow(abuse_trips), size = M, replace = TRUE)]
+        normal_sample <- test_data[sample(1:nrow(test_data), size = test_size - M, replace = TRUE)]
+        sampled <- rbind(abuse_sample, normal_sample)
         cbind(.SD, sampled)
     },
-    by = .(quantile)
+    by = .(quantile, rider, M)
 ]
+# View(sampled_data[,
+#     .(price = mean(real_price)),
+#    by =.(quantile, M)
+# ])
 ```
 
 ```{r}
 multipler <- 1 # indicate how many times the simulation should be repeated
-# every rider bought 40 rides
 My <- test_size * multipler
 bk <- sample(c("MorningRush", "EveningRush", "Otherwise"), sum(My) * 10, replace = TRUE)
 rho_k <- user_records[.(bk = bk),
@@ -140,16 +145,17 @@ Rp_0 <- request_R(p2, p2$start_time, p2$start_time, p2$distance, risk_free = 0, 
 Kt <- request_K(p1, p1$distance)
 Kp <- request_K(p2, p2$distance)
 Rt_0 <- na.omit(Rt_0)
-Rt_0 <- mean(group_mean(Rt_0, 100 * multipler)) * 1
+Rt_0 <- mean(group_max(Rt_0, 100 * multipler)) * 1
 
-Kt <- mean(group_mean(Kt, 100 * multipler)) * 1
+Kt <- mean(group_max(Kt, 100 * multipler)) * 1
 profit <- sampled_data[, .(
-    profit = Rt_0 * 40 + sum(pmin(Kt - real_price, 0)),
+    profit = Rt_0 * test_size + sum(pmin(Kt - real_price, 0)),
     expand = sum((real_price))
 ), by = .(M, quantile, rider)]
 cost_stats_table <- profit[, .(
-    mean = mean((profit) / expand * test_size, na.rm = TRUE),
-    variance = var(profit) / sqrt(40)
+    pct_mean = mean((profit) / expand * test_size, na.rm = TRUE),
+    variance = var(profit) / sqrt(test_size),
+    dollar_mean = mean(profit, na.rm = TRUE)
 ), by = .(M, quantile)]
 # table(sampled_data$real_price)
 ```
@@ -157,8 +163,11 @@ cost_stats_table <- profit[, .(
 
 ```{r}
 # reshape the data to draw the table
-table4 <- dcast(cost_stats_table, M ~ quantile, value.var = "mean")
+table4 <- dcast(cost_stats_table, M ~ quantile, value.var = "pct_mean")
 table5 <- dcast(cost_stats_table, M ~ quantile, value.var = "variance")
+table6 <- dcast(cost_stats_table, M ~ quantile, value.var = "dollar_mean")
 table4
 table5
+table6
 ```
+

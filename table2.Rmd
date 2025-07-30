@@ -44,91 +44,106 @@ pt <- predict(fit_t, user_records)
 pp <- predict(fit_p, user_records)
 ```
 ```{r}
+K <- exp(0.1)
 Rt1 <- request_R(pt, user_data$start_time, user_data$start_time, user_data$distance, K = 1, risk_free = 0)
 Rt2 <- request_R(pt, user_data$start_time, user_data$start_time, user_data$distance, K = exp(0.05), risk_free = 0)
-Rt3 <- request_R(pt, user_data$start_time, user_data$start_time, user_data$distance, K = exp(0.1), risk_free = 0)
+Rt3 <- request_R(pt, user_data$start_time, user_data$start_time, user_data$distance, K = K, risk_free = 0)
 Rp1 <- request_R(pp, user_data$start_time, user_data$start_time, user_data$distance, K = 1, risk_free = 0)
 Rp2 <- request_R(pp, user_data$start_time, user_data$start_time, user_data$distance, K = exp(0.05), risk_free = 0)
-Rp3 <- request_R(pp, user_data$start_time, user_data$start_time, user_data$distance, K = exp(0.1), risk_free = 0)
-Rt01 <- request_R(pt, user_data$start_time, user_data$start_time, user_data$distance, K = 0.01, risk_free = 0)
-Rp01 <- request_R(pp, user_data$start_time, user_data$start_time, user_data$distance, K = 0.01, risk_free = 0)
+Rp3 <- request_R(pp, user_data$start_time, user_data$start_time, user_data$distance, K = K, risk_free = 0)
+# Rt01 <- request_R(pt, user_data$start_time, user_data$start_time, user_data$distance, K = 0.01, risk_free = 0)
+# Rp01 <- request_R(pp, user_data$start_time, user_data$start_time, user_data$distance, K = 0.01, risk_free = 0)
 Kt1 <- request_K(pt, user_data$distance, discount_factor = 1)
 Kt2 <- request_K(pt, user_data$distance, discount_factor = exp(0.05))
-Kt3 <- request_K(pt, user_data$distance, discount_factor = exp(0.1))
+Kt3 <- request_K(pt, user_data$distance, discount_factor = K)
 Kp1 <- request_K(pp, user_data$distance, discount_factor = 1)
 Kp2 <- request_K(pp, user_data$distance, discount_factor = exp(0.05))
-Kp3 <- request_K(pp, user_data$distance, discount_factor = exp(0.1))
-Kt01 <- request_K(pt, user_data$distance, discount_factor = 0.01)
-Kp01 <- request_K(pp, user_data$distance, discount_factor = 0.01)
+Kp3 <- request_K(pp, user_data$distance, discount_factor = K)
+# Kt01 <- request_K(pt, user_data$distance, discount_factor = 0.01)
+# Kp01 <- request_K(pp, user_data$distance, discount_factor = 0.01)
 P <- user_data$real_price
-Rt1 <- na.omit(Rt1)
-Rt2 <- na.omit(Rt2)
-Rt3 <- na.omit(Rt3)
-Rt01 <- na.omit(Rt01)
+Pt <- P
+if (havna(Rt1)) {
+
+}
+if (any(is.na(Rt1))) {
+    # find the NA values
+    na_index <- which(is.na(Rt1))
+    # drop the index from Rt1, Rt2, Rt3, Rp1, Rp2, Rp3, Kt1, Kt2, Kt3, Kp1, Kp2, Kp3, P
+    Rt1 <- Rt1[-na_index]
+    Rt2 <- Rt2[-na_index]
+    Rt3 <- Rt3[-na_index]
+    Kt1 <- Kt1[-na_index]
+    Kt2 <- Kt2[-na_index]
+    Kt3 <- Kt3[-na_index]
+    # Kt01 <- Kt01[-na_index]
+    # Kp01 <- Kp01[-na_index]
+    Pt <- P[-na_index]
+}
 ```
 
 ```{r}
-Model <- c(rep("Trip-Specific", 4), rep("Population", 4))
-Strike <- rep(c(1, exp(0.05), exp(0.1), 0.01), 2)
+Model <- c(rep("Trip-Specific", 3), rep("Population", 3))
+Strike <- rep(c(1, exp(0.05), K), 2)
 Percentage_profit <- c(
-    mean((Rt1 - pmax(P - Kt1, 0)) / P) * 100,
-    mean((Rt2 - pmax(P - Kt2, 0)) / P) * 100,
-    mean((Rt3 - pmax(P - Kt3, 0)) / P) * 100,
-    mean((Rt01 - pmax(P - Kt01, 0)) / P) * 100,
+    mean((Rt1 - pmax(Pt - Kt1, 0)) / Pt) * 100,
+    mean((Rt2 - pmax(Pt - Kt2, 0)) / Pt) * 100,
+    mean((Rt3 - pmax(Pt - Kt3, 0)) / Pt) * 100,
+    #    mean((Rt01 - pmax(P - Kt01, 0)) / P) * 100,
     mean((Rp1 - pmax(P - Kp1, 0)) / P) * 100,
     mean((Rp2 - pmax(P - Kp2, 0)) / P) * 100,
-    mean((Rp3 - pmax(P - Kp3, 0)) / P) * 100,
-    mean((Rp01 - pmax(P - Kp01, 0)) / P) * 100
+    mean((Rp3 - pmax(P - Kp3, 0)) / P) * 100
+    #    mean((Rp01 - pmax(P - Kp01, 0)) / P) * 100
 )
 Average_profit <- c(
-    mean(Rt1 - pmax(P - Kt1, 0)),
-    mean(Rt2 - pmax(P - Kt2, 0)),
-    mean(Rt3 - pmax(P - Kt3, 0)),
-    mean(Rt01 - pmax(P - Kt01, 0)),
+    mean(Rt1 - pmax(Pt - Kt1, 0)),
+    mean(Rt2 - pmax(Pt - Kt2, 0)),
+    mean(Rt3 - pmax(Pt - Kt3, 0)),
+    #    mean(Rt01 - pmax(P - Kt01, 0)),
     mean(Rp1 - pmax(P - Kp1, 0)),
     mean(Rp2 - pmax(P - Kp2, 0)),
-    mean(Rp3 - pmax(P - Kp3, 0)),
-    mean(Rp01 - pmax(P - Kp01, 0))
+    mean(Rp3 - pmax(P - Kp3, 0))
+    #    mean(Rp01 - pmax(P - Kp01, 0))
 )
 Maximum_Loss <- c(
-    min(Rt1 - pmax(P - Kt1, 0)),
-    min(Rt2 - pmax(P - Kt2, 0)),
-    min(Rt3 - pmax(P - Kt3, 0)),
-    min(Rt01 - pmax(P - Kt01, 0)),
+    min(Rt1 - pmax(Pt - Kt1, 0)),
+    min(Rt2 - pmax(Pt - Kt2, 0)),
+    min(Rt3 - pmax(Pt - Kt3, 0)),
+    #    min(Rt01 - pmax(P - Kt01, 0)),
     min(Rp1 - pmax(P - Kp1, 0)),
     min(Rp2 - pmax(P - Kp2, 0)),
-    min(Rp3 - pmax(P - Kp3, 0)),
-    min(Rp01 - pmax(P - Kp01, 0))
+    min(Rp3 - pmax(P - Kp3, 0))
+    #    min(Rp01 - pmax(P - Kp01, 0))
 )
 Average_premium <- c(
     mean(Rt1),
     mean(Rt2),
     mean(Rt3),
-    mean(Rt01),
+    #    mean(Rt01),
     mean(Rp1),
     mean(Rp2),
-    mean(Rp3),
-    mean(Rp01)
+    mean(Rp3)
+    #    mean(Rp01)
 )
 Average_pct_premium_to_P <- c(
-    mean(Rt1 / P) * 100,
-    mean(Rt2 / P) * 100,
-    mean(Rt3 / P) * 100,
-    mean(Rt01 / P) * 100,
+    mean(Rt1 / Pt) * 100,
+    mean(Rt2 / Pt) * 100,
+    mean(Rt3 / Pt) * 100,
+    #    mean(Rt01 / P) * 100,
     mean(Rp1 / P) * 100,
     mean(Rp2 / P) * 100,
-    mean(Rp3 / P) * 100,
-    mean(Rp01 / P) * 100
+    mean(Rp3 / P) * 100
+    #    mean(Rp01 / P) * 100
 )
 Total_trips <- c(
     length(Rt1),
     length(Rt2),
     length(Rt3),
-    length(Rt01),
+    #    length(Rt01),
     length(Rp1),
     length(Rp2),
-    length(Rp3),
-    length(Rp01)
+    length(Rp3)
+    #    length(Rp01)
 )
 ```
 
@@ -145,3 +160,4 @@ table2 <- data.table(
 )
 table2
 ```
+
