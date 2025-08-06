@@ -22,13 +22,32 @@ trips <- fread("data/trips.csv")
 t <- fread("data/similarity_route_fiction.csv")
 set.seed(1234)
 id <- sample(unique(trips$trip), 2000)
-normal <- similar_route(id, trips, sigma_n = 2, significance = 0.99)
+normal <- similar_route(id, trips, sigma_n = 0, significance = 0.0)
 real <- subset(trips, trip %in% id)
 ```
 
 ```{r}
 fr <- pressure_test1(id, trips)
 ```
+
+```{r}
+timebine_x_edges <- get_timeBin_x_edges(trips)
+real1 <- real[,
+  .(
+    timeBin = time_bins_readable(time),
+    linkId = linkId
+  ),
+  by = trip
+]
+real1 <- merge(real1, timebine_x_edges, by = c("timeBin", "linkId"), all.x = TRUE)
+real1 <- na.omit(real1)
+
+real1_stat <- real1[
+  ,
+  .(duration = sum(exp(mean + qnorm(dependent_uniform(.N)) * sd))), trip
+]
+```
+
 ```{r}
 # get duration per trip in all three datasets
 normal_duration <- normal[, .(
@@ -47,6 +66,8 @@ names(data)[c(2, 3)] <- c("normal", "real")
 data <- merge(data, t_duration, by = "trip")
 names(data)[4] <- "t"
 data$frequency <- fr[[1]]$dependent_time
+data <- merge(data, real1_stat, by = "trip")
+names(data)[6] <- "dependent_model"
 # save the data into a csv file
 write.csv(data, "plot/plot_data/figure4_data_right.csv")
 ```

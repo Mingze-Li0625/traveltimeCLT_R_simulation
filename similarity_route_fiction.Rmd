@@ -18,7 +18,14 @@ library(data.table)
 trips <- fread("data/trips.csv")
 set.seed(1234)
 id <- sample(unique(trips$trip), 2000)
-simulated_data <- similarity_route_fiction(id,trips,sigma_n = 2,significance = 0.95)
-write.csv(simulated_data,"data/similarity_route_fiction.csv")
+Rprof("profile.out")
+simulated_data <- similar_route(id, trips, sigma_n = 2, model = "t", significance = 0.5)
+# similar_route(c(2700,2701), trips,r=5, significance=0.05)
+Rprof(NULL)
+summaryRprof("profile.out")
+# check if s have NAs
+any(is.na(simulated_data))
+
+write.csv(simulated_data, "data/similarity_route_fiction.csv")
 ```
 
