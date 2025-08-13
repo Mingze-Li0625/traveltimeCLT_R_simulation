@@ -49,7 +49,7 @@ trips_stat <- na.omit(trips_stat) # remove trips with NA values in Rt and Kt.
 ```{r}
 # hyperparameters of the simulation.
 # repeat time: how many times to repeat the simulation.
-repeat_time <- 100
+repeat_time <- 2000
 # number of riders: how many riders to simulate.
 rider <- 10
 # test size: how many trips to simulate for each rider.
