@@ -49,7 +49,7 @@ trips_stat <- na.omit(trips_stat) # remove trips with NA values in Rt and Kt.
 ```{r}
 # hyperparameters of the simulation.
 # repeat time: how many times to repeat the simulation.
-repeat_time <- 10
+repeat_time <- 100
 # number of riders: how many riders to simulate.
 rider <- 10
 # test size: how many trips to simulate for each rider.
@@ -57,7 +57,7 @@ test_size <- 40
 # quantile <- c(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
 quantile <- c(0)
 # M <- seq(0, floor(test_size * 0.5), floor(test_size * 0.1))
-M <- (0)
+M <- c(0)
 set.seed(1234)
 
 pressure_data <- data.table(
@@ -74,15 +74,15 @@ pressure_data <- pressure_data[, .(
 # sample from trips_stat with replacement, the distance limited from quantile to 1.
 sampled_stat <- pressure_data[,
     {
-        id <- sample(trips_stat$tripID, test_size, replace = FALSE)
+        id <- sample.int(nrow(trips_stat), test_size, replace = FALSE)
         test <- trips_stat[id]
         train <- trips_stat[-id]
         samples <- .SD[,
             {
                 q_value <- quantile(test$distance, probs = .BY$quantile)
                 abuse_trips <- test[distance >= q_value]
-                abuse_sample <- abuse_trips[sample(nrow(abuse_trips), size = .BY$M, replace = TRUE)]
-                normal_sample <- train[sample(test_size, size = test_size - .BY$M, replace = TRUE)]
+                abuse_sample <- abuse_trips[sample.int(nrow(abuse_trips), size = .BY$M, replace = TRUE)]
+                normal_sample <- train[sample.int(test_size, size = test_size - .BY$M, replace = TRUE)]
 
                 # 合并抽样数据并添加列
                 combined <- rbindlist(list(
