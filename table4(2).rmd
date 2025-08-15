@@ -45,14 +45,14 @@ Rt <- request_R(pt, trips_stat$start_time, trips_stat$start_time, trips_stat$dis
 Kt <- request_K(pt, trips_stat$distance, discount_factor = 0.9)
 # trips_stat$Rt <- Rt
 trips_stat$Kt <- Kt
-trips_stat$Rt <- -pmin(mean(Kt) - trips_stat$real_price, 0)
+# trips_stat$Rt <- -pmin(mean(Kt) - trips_stat$real_price, 0)
 trips_stat <- na.omit(trips_stat) # remove trips with NA values in Rt and Kt.
 ```
 
 ```{r}
 # hyperparameters of the simulation.
 # repeat time: how many times to repeat the simulation.
-repeat_time <- 100
+repeat_time <- 10
 # number of riders: how many riders to simulate.
 rider <- 10
 # test size: how many trips to simulate for each rider.
@@ -85,15 +85,15 @@ sampled_stat <- pressure_data[,
                 q_value <- quantile(test$distance, probs = .BY$quantile)
                 abuse_trips <- test[distance >= q_value]
                 abuse_sample <- abuse_trips[sample.int(nrow(abuse_trips), size = .BY$M, replace = TRUE)]
-                normal_sample <- train[sample.int(test_size, size = test_size - .BY$M, replace = TRUE)]
+                normal_sample <- test[sample.int(test_size, size = test_size - .BY$M, replace = TRUE)]
 
                 # 合并抽样数据并添加列
                 combined <- rbindlist(list(
                     abuse_sample[, .(tripID)],
                     normal_sample[, .(tripID)]
                 ))[, `:=`(
-                    Rt = rep(mean(train$Rt), .N),
-                    Kt = rep(mean(train$Kt), .N),
+                    Rt = rep(-pmin(mean(train$Kt) - trips_stat$real_price, 0), test_size),
+                    Kt = rep(mean(train$Kt), test_size),
                     timeBin = sample(c("EveningNight", "EveningRush", "Weekday", "MorningRush", "Weekendday"),
                         .N,
                         replace = TRUE
