@@ -43,7 +43,7 @@ fit <- traveltimeCLT(trips, "trip-specific")
 pt <- predict(fit, trips_record)
 Rt <- request_R(pt, trips_stat$start_time, trips_stat$start_time, trips_stat$distance, K = 0.9, risk_free = 0, zeta = 0)
 Kt <- request_K(pt, trips_stat$distance, discount_factor = 0.9)
-# trips_stat$Rt <- Rt
+trips_stat$Rt <- Rt
 trips_stat$Kt <- Kt
 # trips_stat$Rt <- -pmin(mean(Kt) - trips_stat$real_price, 0)
 trips_stat <- na.omit(trips_stat) # remove trips with NA values in Rt and Kt.
@@ -89,11 +89,11 @@ sampled_stat <- pressure_data[,
 
                 # 合并抽样数据并添加列
                 combined <- rbindlist(list(
-                    abuse_sample[, .(tripID)],
-                    normal_sample[, .(tripID)]
+                    abuse_sample[, .(tripID, Kt)],
+                    normal_sample[, .(tripID, Kt)]
                 ))[, `:=`(
-                    Rt = rep(mean(-pmin(mean(train$Kt) - trips_stat$real_price, 0)), test_size),
-                    Kt = rep(mean(train$Kt), test_size),
+                    # Rt = rep(mean(-pmin(mean(train$Kt) - trips_stat$real_price, 0)), test_size),
+                    Rt = train[sample.int(nrow(train), size = test_size, replace = TRUE)]$Rt,
                     timeBin = sample(c("EveningNight", "EveningRush", "Weekday", "MorningRush", "Weekendday"),
                         .N,
                         replace = TRUE
@@ -169,7 +169,7 @@ pressure_data <- merge(pressure_data, sampled_stat[, c("repeat_time", "quantile"
 # calculate the profit
 profit <- pressure_data[, .(
     profit = sum(Rt) + sum(pmin(Kt - real_price, 0)),
-    expand = sum((real_price))
+    expand = sum(-pmin(Kt - real_price, 0))
 ), by = .(repeat_time, M, quantile, rider)]
 cost_stats_table <- profit[, .(
     pct_mean = mean((profit) / expand * test_size, na.rm = TRUE),
