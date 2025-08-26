@@ -22,7 +22,7 @@ trips <- fread("data/trips.csv")
 t <- fread("data/similarity_route_fiction.csv")
 set.seed(1234)
 id <- sample(unique(trips$trip), 2000)
-normal <- similar_route(id, trips, sigma_n = 0, significance = 0.01)
+normal <- similar_route(id, trips, sigma_n = 0, significance = 0.0)
 real <- subset(trips, trip %in% id)
 ```
 

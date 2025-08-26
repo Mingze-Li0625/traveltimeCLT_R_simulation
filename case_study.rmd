@@ -34,9 +34,9 @@ pair_counts <- start_end[, .(count = .N), by = sorted_pair][order(-count)]
 ```
 
 ```{r}
-pair <- pair_counts[1, sorted_pair]
+pair <- pair_counts[2, sorted_pair]
 selected_trips <- start_end[sorted_pair == pair, trip]
-selected_trips <- selected_trips[1:14]
+selected_trips <- selected_trips
 input_trip <- trips[trip %in% selected_trips[1:2]]
 test_trip <- trips[trip %in% selected_trips[3:14]]
 train_trip <- trips[!trip %in% selected_trips[3:14]]

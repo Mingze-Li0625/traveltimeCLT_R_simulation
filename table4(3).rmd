@@ -33,7 +33,8 @@ trips_stat <- trips[, .(
     start_time = entry_time[1],
     distance = sum(distance_meters),
     duration_secs = max(entry_time) - min(entry_time),
-    real_price = price(max(entry_time) - min(entry_time), sum(distance_meters))[, 1]
+    real_price = price(max(entry_time) - min(entry_time), sum(distance_meters))[, 1],
+    timeBin = timeBin[1]
 ), tripID]
 ```
 
@@ -87,17 +88,13 @@ sampled_stat <- pressure_data[,
                 abuse_sample <- abuse_trips[sample.int(nrow(abuse_trips), size = .BY$M, replace = TRUE)]
                 normal_sample <- test[sample.int(test_size, size = test_size - .BY$M, replace = TRUE)]
 
-                # 合并抽样数据并添加列
+                # combine the abuse sample and normal sample, then add some columns.
                 combined <- rbindlist(list(
-                    abuse_sample[, .(tripID, Kt)],
-                    normal_sample[, .(tripID, Kt)]
+                    abuse_sample[, .(tripID, Kt, timeBin)],
+                    normal_sample[, .(tripID, Kt, timeBin)]
                 ))[, `:=`(
                     # Rt = rep(mean(-pmin(mean(train$Kt) - trips_stat$real_price, 0)), test_size),
-                    Rt = train[sample.int(nrow(train), size = test_size, replace = TRUE)]$Rt,
-                    timeBin = sample(c("EveningNight", "EveningRush", "Weekday", "MorningRush", "Weekendday"),
-                        .N,
-                        replace = TRUE
-                    )
+                    Rt = train[sample.int(nrow(train), size = test_size, replace = TRUE)]$Rt
                 )]
 
                 cbind(.SD, combined)
@@ -168,12 +165,13 @@ pressure_data <- merge(pressure_data, sampled_stat[, c("repeat_time", "quantile"
 ```{r}
 # calculate the profit
 profit <- pressure_data[, .(
-    profit = sum(Rt) + sum(pmin(Kt - real_price, 0)),
-    expand = sum(-pmin(Kt - real_price, 0))
+    revenue = sum(Rt),
+    cost = sum(-pmin(Kt - real_price, 0)),
+    profit = sum(Rt) - sum(-pmin(Kt - real_price, 0))
 ), by = .(repeat_time, M, quantile, rider)]
 cost_stats_table <- profit[, .(
-    pct_mean = mean((profit) / expand * test_size, na.rm = TRUE),
-    sd = sqrt(var(profit, na.rm = TRUE) / sqrt(test_size)),
+    pct_mean = mean(profit / cost),
+    sd = sqrt(var(profit / cost, na.rm = TRUE) / sqrt(test_size)),
     dollar_mean = mean(profit, na.rm = TRUE)
 ), by = .(M, quantile)]
 # table(sampled_data$real_price)
