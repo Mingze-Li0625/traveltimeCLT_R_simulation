@@ -12,6 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(traveltimeCLT)
 library(data.table)
+# setwd("D:/李明泽/留学/Statistics Master/travel pricing/R-simulation/")
 ```
 
 ```{r}
@@ -21,49 +22,82 @@ start_end <- trips[
   , .(
     start = linkId[order(time)][1],
     end = linkId[order(time)[.N]],
+    start_time = time[order(time)][1],
     distance = sum(length)
   ), trip
 ]
 
-start_end[, sorted_pair := fcase(
-  start < end, paste(start, end, sep = "->"),
-  start > end, paste(end, start, sep = "->")
-)]
+# start_end[, sorted_pair := fcase(
+#   start < end, paste(start, end, sep = "->"),
+#   start > end, paste(end, start, sep = "->")
+# )]
 
-pair_counts <- start_end[, .(count = .N), by = sorted_pair][order(-count)]
+# pair_counts <- start_end[, .(count = .N), by = sorted_pair][order(-count)]
+pair_counts <- start_end[, .(count = .N, start_time = max(start_time)), by = .(start, end)][order(-count)]
 ```
 
 ```{r}
-pair <- pair_counts[2, sorted_pair]
-selected_trips <- start_end[sorted_pair == pair, trip]
-selected_trips <- selected_trips
-input_trip <- trips[trip %in% selected_trips[1:2]]
-test_trip <- trips[trip %in% selected_trips[3:14]]
-train_trip <- trips[!trip %in% selected_trips[3:14]]
-start_end[trip %in% selected_trips]
-distance <- start_end[trip %in% selected_trips[1:2], distance]
+# hyperparameters of the simulation.
+# repeat time: how many times to repeat the simulation.
+repeat_time <- 10
+# X: how many trips to simulate for each real trip.
+X <- 5
+# significance level: how similar the new edges are to the old edges.
+# a larger value means less similar, a smaller value means more similar.
+significance_level <- 0.1
+# sigma_n: the standard deviation of the noise added to the number of edges.
+sigma_n <- 2
+# trip_num: the number of trips to simulate.
+trip_num <- 30
 ```
 
 ```{r}
-names(train_trip)[c(2, 3, 5, 7, 8)] <- c("tripID", "entry_time", "duration_secs", "distance_meters", "linkID")
-train_trip$speed <- exp(train_trip$logspeed)
-train_trip$timeBin <- time_bins_readable(train_trip$entry_time)
-fit <- traveltimeCLT(train_trip)
-sample1 <- sample_route(distance[1], trips, 6)
-sample2 <- sample_route(distance[2], trips, 6)
-sample <- rbind(sample1, sample2)
-names(sample)[c(2, 3, 5, 7, 8)] <- c("tripID", "entry_time", "duration_secs", "distance_meters", "linkID")
-p <- predict(fit, sample)
-start_time <- sample[, entry_time[1], tripID]
-R <- request_R(p, start_time$V1, start_time$V1, distance, risk_free = 0)
-K <- request_K(p, start_time$V1, start_time$V1, distance)
-daily_cost <- sum(R + K) / 6
-daily_cost
+simulated_data <- data.table(
+  repeat_time = rep(1:repeat_time, each = ceiling(trip_num / X))
+)
+groups <- pair_counts[count >= ceiling(trip_num / X), ]
+simulated_data <- simulated_data[,
+  {
+    group <- groups[sample.int(nrow(groups), 1)]
+    trip_set <- start_end[(start == group$start & end == group$end)]
+    id <- sample.int(nrow(trip_set), ceiling(trip_num / X))
+    .(
+      trip = trip_set$trip[id],
+      start_time = trip_set$start_time[id]
+    )
+  },
+  by = repeat_time
+]
+simulated_test <- similar_route(simulated_data$trip, trips, r = X, sigma_n = sigma_n, significance = significance_level)
+simulated_price <- similar_route(simulated_data$trip, trips, r = X, sigma_n = sigma_n, significance = significance_level)
+
+simulated_price <- merge(simulated_price, simulated_data[, c("trip", "start_time")], by = "trip")
+setnames(simulated_price, old = c("newtrip", "linkId", "length", "start_time"), new = c("tripID", "linkID", "distance_meters", "entry_time"), skip_absent = TRUE)
+simulated_test <- merge(simulated_test, simulated_data[, c("trip", "start_time")], by = "trip")
+setnames(simulated_test, old = c("newtrip", "linkId", "length", "start_time"), new = c("tripID", "linkID", "distance_meters", "entry_time"), skip_absent = TRUE)
 ```
 
 ```{r}
-test_distance <- start_end[trip %in% selected_trips[3:14], distance]
-test_duration <- test_trip[, .(duration = time[.N] - time[1]), trip][, duration]
-test_price <- price(test_duration, test_distance, risk_free = 0)
-sum(test_price[, 1]) / 6
+# find all R and K in the trips set
+names(trips)[c(2, 3, 5, 7, 8)] <- c("tripID", "entry_time", "duration_secs", "distance_meters", "linkID")
+trips_stat <- trips[, .(
+  real_price = price(max(entry_time) - min(entry_time), sum(distance_meters))[, 1]
+), tripID]
+trips$speed <- exp(trips$logspeed)
+fit <- traveltimeCLT(trips, "trip-specific")
+```
+
+```{r}
+fit_price <- predict(fit, simulated_price)
+fit_test <- predict(fit, simulated_test)
+price_start_time <- simulated_price[, .(
+  start_time = min(entry_time)
+), tripID]
+Rprice <- request_R(fit_price, price_start_time$start_time, price_start_time$start_time, simulated_price$distance_meters, K = 0.9, risk_free = 0, zeta = 0)
+Kprice <- request_K(fit_price, simulated_price$distance_meters, discount_factor = 0.9)
+test_start_time <- simulated_test[, .(
+  start_time = min(entry_time)
+), tripID]
+Rtest <- request_R(fit_test, test_start_time$start_time, test_start_time$start_time, simulated_test$distance_meters, K = 0.9, risk_free = 0, zeta = 0)
+Ktest <- request_K(fit_test, simulated_test$distance_meters, discount_factor = 0.9)
 ```

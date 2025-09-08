@@ -84,7 +84,7 @@ sampled_stat <- pressure_data[,
         samples <- .SD[,
             {
                 q_value <- quantile(test$distance, probs = .BY$quantile)
-                abuse_trips <- test[distance >= q_value]
+                abuse_trips <- trips_stat[distance >= q_value]
                 abuse_sample <- abuse_trips[sample.int(nrow(abuse_trips), size = .BY$M, replace = TRUE)]
                 normal_sample <- test[sample.int(test_size, size = test_size - .BY$M, replace = TRUE)]
 
@@ -170,7 +170,7 @@ profit <- pressure_data[, .(
     profit = sum(Rt) - sum(-pmin(Kt - real_price, 0))
 ), by = .(repeat_time, M, quantile, rider)]
 cost_stats_table <- profit[, .(
-    pct_mean = mean(profit / cost),
+    profit_over_revenue = mean(profit / cost),
     sd = sqrt(var(profit / cost, na.rm = TRUE) / sqrt(test_size)),
     dollar_mean = mean(profit, na.rm = TRUE)
 ), by = .(M, quantile)]
@@ -179,7 +179,7 @@ cost_stats_table <- profit[, .(
 
 ```{r}
 # reshape the data to draw the table
-table4 <- dcast(cost_stats_table, M ~ quantile, value.var = "pct_mean")
+table4 <- dcast(cost_stats_table, M ~ quantile, value.var = "profit_over_revenue")
 table5 <- dcast(cost_stats_table, M ~ quantile, value.var = "sd")
 table6 <- dcast(cost_stats_table, M ~ quantile, value.var = "dollar_mean")
 table4
