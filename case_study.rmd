@@ -90,14 +90,23 @@ fit <- traveltimeCLT(trips, "trip-specific")
 ```{r}
 fit_price <- predict(fit, simulated_price)
 fit_test <- predict(fit, simulated_test)
-price_start_time <- simulated_price[, .(
-  start_time = min(entry_time)
+price_stat <- simulated_price[, .(
+  start_time = min(entry_time),
+  distance = sum(distance_meters)
 ), tripID]
-Rprice <- request_R(fit_price, price_start_time$start_time, price_start_time$start_time, simulated_price$distance_meters, K = 0.9, risk_free = 0, zeta = 0)
-Kprice <- request_K(fit_price, simulated_price$distance_meters, discount_factor = 0.9)
-test_start_time <- simulated_test[, .(
-  start_time = min(entry_time)
+price_stat$Rprice <- request_R(fit_price, price_stat$start_time, price_stat$start_time, price_stat$distance, K = 0.9, risk_free = 0, zeta = 0)
+price_stat$Kprice <- request_K(fit_price, price_stat$distance, discount_factor = 0.9)
+
+test_stat <- simulated_test[, .(
+  start_time = min(entry_time),
+  distance = sum(distance_meters)
 ), tripID]
-Rtest <- request_R(fit_test, test_start_time$start_time, test_start_time$start_time, simulated_test$distance_meters, K = 0.9, risk_free = 0, zeta = 0)
-Ktest <- request_K(fit_test, simulated_test$distance_meters, discount_factor = 0.9)
+test_stat$Rtest <- request_R(fit_test, test_stat$start_time, test_stat$start_time, test_stat$distance, K = 0.9, risk_free = 0, zeta = 0)
+test_stat$Ktest <- request_K(fit_test, test_stat$distance, discount_factor = 0.9)
+```
+
+```{r}
+test_time <- simulated_test[, .(
+  duration = sum(exp(mean + qnorm(dependent_uniform(.N, 0.31)) * sd))
+), tripID]
 ```
