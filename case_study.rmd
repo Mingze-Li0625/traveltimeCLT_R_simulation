@@ -38,13 +38,14 @@ pair_counts <- start_end[, .(count = .N, start_time = max(start_time)), by = .(s
 
 ```{r}
 # hyperparameters of the simulation.
+set.seed(1234)
 # repeat time: how many times to repeat the simulation.
 repeat_time <- 10
 # X: how many trips to simulate for each real trip.
 X <- 5
 # significance level: how similar the new edges are to the old edges.
 # a larger value means less similar, a smaller value means more similar.
-significance_level <- 0.1
+significance_level <- 0.05
 # sigma_n: the standard deviation of the noise added to the number of edges.
 sigma_n <- 2
 # trip_num: the number of trips to simulate.
@@ -94,19 +95,31 @@ price_stat <- simulated_price[, .(
   start_time = min(entry_time),
   distance = sum(distance_meters)
 ), tripID]
-price_stat$Rprice <- request_R(fit_price, price_stat$start_time, price_stat$start_time, price_stat$distance, K = 0.9, risk_free = 0, zeta = 0)
-price_stat$Kprice <- request_K(fit_price, price_stat$distance, discount_factor = 0.9)
+price_stat$R <- request_R(fit_price, price_stat$start_time, price_stat$start_time, price_stat$distance, K = 0.9, risk_free = 0, zeta = 0)
+price_stat$K <- request_K(fit_price, price_stat$distance, discount_factor = 0.9)
 
 test_stat <- simulated_test[, .(
   start_time = min(entry_time),
   distance = sum(distance_meters)
 ), tripID]
-test_stat$Rtest <- request_R(fit_test, test_stat$start_time, test_stat$start_time, test_stat$distance, K = 0.9, risk_free = 0, zeta = 0)
-test_stat$Ktest <- request_K(fit_test, test_stat$distance, discount_factor = 0.9)
+test_stat$R <- request_R(fit_test, test_stat$start_time, test_stat$start_time, test_stat$distance, K = 0.9, risk_free = 0, zeta = 0)
+test_stat$K <- request_K(fit_test, test_stat$distance, discount_factor = 0.9)
 ```
 
 ```{r}
 test_time <- simulated_test[, .(
-  duration = sum(exp(mean + qnorm(dependent_uniform(.N, 0.31)) * sd))
+  duration = sum(exp(mean + qnorm(dependent_uniform(.N, 0.31)) * sd)),
+  distance = sum(distance_meters)
 ), tripID]
+test_time$price <- price(test_time$duration, test_time$distance)[, 1]
+revenue <- sum(price_stat$R) / trip_num / repeat_time
+revenue
+profit <- price_stat$R - pmax(test_time$price - price_stat$K, 0)
+```
+```{r}
+mean(profit)
+var(profit)
+max(profit)
+min(profit)
+length(profit[profit > 0]) / length(profit)
 ```
