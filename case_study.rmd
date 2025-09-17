@@ -123,3 +123,17 @@ max(profit)
 min(profit)
 length(profit[profit > 0]) / length(profit)
 ```
+
+```{r}
+i <- which(profit == min(profit)) - 1
+profit[i]
+price_stat[i, ]
+test_time[i, "duration"]
+edge <- simulated_test[simulated_test$tripID == test_stat[i, tripID], ]
+edge
+edge[, .(
+  duration = sum(exp(mean + qnorm(dependent_uniform(.N, 0.31)) * sd)),
+  expection = sum(exp(mean)),
+  noise = sum(sd)
+), tripID]
+```
