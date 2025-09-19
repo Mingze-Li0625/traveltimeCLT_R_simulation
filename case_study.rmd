@@ -125,15 +125,25 @@ length(profit[profit > 0]) / length(profit)
 ```
 
 ```{r}
-i <- which(profit == min(profit)) - 1
+setnames(trips, old = c("tripID", "linkID", "distance_meters", "entry_time"), new = c("trip", "linkId", "length", "time"), skip_absent = TRUE)
+timeBin_x_edge <- get_timeBin_x_edges(trips)
+i <- which(profit == min(profit)) - 0
 profit[i]
 price_stat[i, ]
 test_time[i, "duration"]
 edge <- simulated_test[simulated_test$tripID == test_stat[i, tripID], ]
+template <- na.omit(trips[trip == edge$trip[1], ])
+setnames(template, old = c("linkID"), new = c("linkId"), skip_absent = TRUE)
+template <- merge(template[, c("linkId", "timeBin")], timeBin_x_edge, by = c("linkId", "timeBin"))
 edge
 edge[, .(
   duration = sum(exp(mean + qnorm(dependent_uniform(.N, 0.31)) * sd)),
   expection = sum(exp(mean)),
   noise = sum(sd)
 ), tripID]
+template[, .(
+  duration = sum(exp(mean + qnorm(dependent_uniform(.N, 0.31)) * sd)),
+  expection = sum(exp(mean)),
+  noise = sum(sd)
+)]
 ```
