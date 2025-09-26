@@ -112,7 +112,7 @@ p=predict(fit, test)
 
 ```{r}
 Rprof("profile.out")
-s=similar_route(c(1),r=1, trips, significance=0.05, model = 'normal')
+s=similar_route(c(1:100),r=1, trips, significance=0.05, model = 'normal')
 #similar_route(c(2700,2701), trips,r=5, significance=0.05)
 Rprof(NULL)
 summaryRprof("profile.out")
