@@ -23,6 +23,10 @@ t <- fread("data/similarity_route_fiction.csv")
 set.seed(1234)
 id <- sample(unique(trips$trip), 2000)
 normal <- similar_route(id, trips, sigma_n = 0, significance = 0.05)
+normal_F <- similar_route(id, trips, sigma_n = 0, significance = 0.05, Ftest_sd = TRUE)
+normal_50 <- similar_route(id, trips, sigma_n = 0, significance = 0.5)
+normal_50F <- similar_route(id, trips, sigma_n = 0, significance = 0.5, Ftest_sd = TRUE)
+normal_95 <- similar_route(id, trips, sigma_n = 0, significance = 0.95)
 real <- subset(trips, trip %in% id)
 ```
 
@@ -46,6 +50,10 @@ real1_stat <- real1[
   ,
   .(duration = sum(exp(mean + qnorm(dependent_uniform(.N)) * sd))), trip
 ]
+normal_F[, .(
+  expection = sum(exp(mean)),
+  noise = sum(sd)
+)]
 ```
 
 ```{r}
@@ -53,7 +61,18 @@ real1_stat <- real1[
 normal_duration <- normal[, .(
   duration = sum(exp(mean + qnorm(dependent_uniform(.N)) * sd))
 ), trip]
-
+normal_F_duration <- normal_F[, .(
+  duration = sum(exp(mean + qnorm(dependent_uniform(.N)) * sd))
+), trip]
+normal_50_duration <- normal_50[, .(
+  duration = sum(exp(mean + qnorm(dependent_uniform(.N)) * sd))
+), trip]
+normal_50F_duration <- normal_50F[, .(
+  duration = sum(exp(mean + qnorm(dependent_uniform(.N)) * sd))
+), trip]
+normal_95_duration <- normal_95[, .(
+  duration = sum(exp(mean + qnorm(dependent_uniform(.N)) * sd))
+), trip]
 real_duration <- real[, .(
   duration = max(time) - min(time)
 ), by = trip]
@@ -61,26 +80,31 @@ t_duration <- t[, .(
   duration = sum(exp(mean + qnorm(dependent_uniform(.N)) * sd))
 ), trip]
 # merge three datasets into one
-data <- merge(normal_duration, real_duration, by = "trip")
-names(data)[c(2, 3)] <- c("normal", "real")
-data <- merge(data, t_duration, by = "trip")
-names(data)[4] <- "t"
-data$frequency <- fr[[1]]$dependent_time
-data <- merge(data, real1_stat, by = "trip")
-names(data)[6] <- "dependent_model"
+data <- data.table(
+  trip = real_duration$trip,
+  real = real_duration$duration,
+  normal = normal_duration$duration,
+  normal_F = normal_F_duration$duration,
+  normal_50 = normal_50_duration$duration,
+  normal_50F = normal_50F_duration$duration,
+  normal_95 = normal_95_duration$duration,
+  t = t_duration$duration,
+  frequency = fr[[1]][, 1]
+)
+
 # save the data into a csv file
-write.csv(data, "plot/plot_data/figure4_data_right.csv")
+# write.csv(data, "plot/plot_data/figure4_data_right.csv")
 ```
 
 ```{r}
 # draw CDF comparison plot
-data <- fread("plot/plot_data/figure4_data_right.csv")
+# data <- fread("plot/plot_data/figure4_data_right.csv")
 fontsize <- 4.3
 plot4_right <- ggplot(data) +
   stat_ecdf(aes(x = real, color = "real_data", linetype = "real_data")) +
   stat_ecdf(aes(x = normal, color = "normal", linetype = "normal")) +
-  stat_ecdf(aes(x = t, color = "t", linetype = "t")) +
-  stat_ecdf(aes(x = frequency, color = "frequency", linetype = "frequency")) +
+  stat_ecdf(aes(x = normal_F, color = "t", linetype = "t")) +
+  stat_ecdf(aes(x = normal_50F, color = "frequency", linetype = "frequency")) +
   labs(
     title = "Empirical CDF Comparison",
     x = "Total Travel Time (seconds)",
