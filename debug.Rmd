@@ -113,16 +113,12 @@ p=predict(fit, test)
 
 ```{r}
 Rprof("profile.out")
-s=similar_route(c(1,1,1),r=1, trips, significance=0.6, model = 'normal',Ftest_sd = F)
-#similar_route(c(2700,2701), trips,r=5, significance=0.05)
+s=similar_route(c(1,1,1),r=2, trips, significance=0.6, model = 't',Ftest_sd = F)
+#similar_route(c(2700,2701,2700),r=2, trips, significance=0.6, model = 't',Ftest_sd = F)
 Rprof(NULL)
 summaryRprof("profile.out")
 #check if s have NAs
 any(is.na(s))
 
-tripID = c(1,1,1)
-trips[.(tripID),on = .(trip), nomatch = 0][,
-  .(linkId,timebin),by = trip]
-trips[data.table(trip = tripID)[, idx := .I],on = .(trip), nomatch = 0
-][, .(linkId, timebin), by = .(trip, idx)]
+
 ```
