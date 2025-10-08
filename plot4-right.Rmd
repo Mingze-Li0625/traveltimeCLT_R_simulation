@@ -174,7 +174,7 @@ plot4_right <- ggplot(data) +
   stat_density(aes(x = normal_5, color = "normal_5", linetype = "normal_5"), geom = "line", size = 0.8) +
   stat_density(aes(x = normal_50, color = "normal_50", linetype = "normal_50"), geom = "line", size = 0.8) +
   stat_density(aes(x = normal_95, color = "normal_95", linetype = "normal_95"), geom = "line", size = 0.8) +
-  stat_density(aes(x = normal_5F, color = "normal_5F", linetype = "normal_5F"), geom = "line", size = 0.8) +
+  stat_density(aes(x = normal_F, color = "normal_5F", linetype = "normal_5F"), geom = "line", size = 0.8) +
   stat_density(aes(x = normal_95F, color = "normal_95F", linetype = "normal_95F"), geom = "line", size = 0.8) +
   stat_density(aes(x = t_5, color = "t_5", linetype = "t_5"), geom = "line", size = 0.8) +
   stat_density(aes(x = t_5F, color = "t_5F", linetype = "t_5F"), geom = "line", size = 0.8) +
