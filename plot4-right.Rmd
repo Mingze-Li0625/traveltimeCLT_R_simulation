@@ -86,7 +86,10 @@ normal_95F_duration <- normal_95F[, .(
 # merge datasets into one
 data <- data.table(
   trip = real_duration$trip,
-  real = real_duration$duration,
+  real = real_duration$duration
+)
+data2 <- data.table(
+  trip = normal_duration$trip,
   normal_5 = normal_duration$duration,
   normal_50 = normal_50_duration$duration,
   normal_95 = normal_95_duration$duration,
@@ -96,6 +99,7 @@ data <- data.table(
   t_5F = t_5F_duration$duration,
   frequency = fr[[1]][, 1]
 )
+data <- merge(data, data2, by = "trip", all = TRUE)
 
 # save the data into a csv file
 # write.csv(data, "plot/plot_data/figure4_data_right.csv")

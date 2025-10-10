@@ -17,13 +17,21 @@ library(ggplot2)
 data <- fread("plot/plot_data/figure4_data_right.csv")
 ```
 
+
 ```{r}
+# draw CDF comparison plot
+# data <- fread("plot/plot_data/figure4_data_right.csv")
 fontsize <- 4.3
 plot4_right <- ggplot(data) +
-    stat_ecdf(aes(x = real, color = "real_data", linetype = "real_data")) +
-    stat_ecdf(aes(x = normal, color = "normal", linetype = "normal")) +
-    stat_ecdf(aes(x = t, color = "t", linetype = "t")) +
-    stat_ecdf(aes(x = frequency, color = "frequency", linetype = "frequency")) +
+    stat_ecdf(aes(x = real, color = "real_data", linetype = "real_data"), size = 1.2) +
+    stat_ecdf(aes(x = normal_5, color = "normal_5", linetype = "normal_5"), size = 0.75) +
+    stat_ecdf(aes(x = normal_50, color = "normal_50", linetype = "normal_50"), size = 0.75) +
+    stat_ecdf(aes(x = normal_95, color = "normal_95", linetype = "normal_95"), size = 0.75) +
+    stat_ecdf(aes(x = normal_F, color = "normal_5F", linetype = "normal_5F"), size = 0.75) +
+    stat_ecdf(aes(x = normal_95F, color = "normal_95F", linetype = "normal_95F"), size = 0.75) +
+    stat_ecdf(aes(x = t_5, color = "t_5", linetype = "t_5"), size = 0.75) +
+    stat_ecdf(aes(x = t_5F, color = "t_5F", linetype = "t_5F"), size = 0.75) +
+    stat_ecdf(aes(x = frequency, color = "frequency", linetype = "frequency"), size = 0.75) +
     labs(
         title = "Empirical CDF Comparison",
         x = "Total Travel Time (seconds)",
@@ -34,18 +42,28 @@ plot4_right <- ggplot(data) +
         name = "Models",
         values = c(
             "real_data" = "red",
-            "normal" = "#aa10e7",
-            "t" = "#09ff00",
-            "frequency" = "blue"
+            "normal_5" = "#e76a10",
+            "normal_50" = "#e9ce00",
+            "normal_95" = "#67d606",
+            "normal_5F" = "#0ff1bc",
+            "normal_95F" = "#063ab2",
+            "t_5" = "#8d0aeb",
+            "t_5F" = "#da4a9e",
+            "frequency" = "#55424fa8"
         )
     ) +
     scale_linetype_manual(
         name = "Models",
         values = c(
             "real_data" = "solid",
-            "normal" = "dashed",
-            "t" = "dotdash",
-            "frequency" = "dotted"
+            "normal_5" = "dashed",
+            "normal_50" = "twodash",
+            "normal_95" = "longdash",
+            "normal_5F" = "twodash",
+            "normal_95F" = "dotdash",
+            "t_5" = "dotted",
+            "t_5F" = "dashed",
+            "frequency" = "longdash"
         )
     ) +
     theme(
@@ -63,21 +81,21 @@ plot4_right
 ```
 
 ```{r}
-# filter the data to only include values between 0 and 20000
-data <- data[
-    real <= 20000 & normal <= 20000 & t <= 20000 & frequency <= 20000,
-    .(real, normal, t, frequency)
-]
-```
+max <- 6000
+special <- data[real >= max | normal_5 >= max | normal_50 >= max | normal_95 >= max | normal_F >= max | normal_95F >= max | t_5 >= max | t_5F >= max | frequency >= max]
+data <- data[real <= max & normal_5 <= max & normal_50 <= max & normal_95 <= max & normal_F <= max & normal_95F <= max & t_5 <= max & t_5F <= max & frequency <= max]
 
-```{r}
-# plot pdf comparison plot
 
 plot4_right <- ggplot(data) +
-    stat_density(aes(x = real, color = "real_data", linetype = "real_data"), geom = "line") +
-    stat_density(aes(x = normal, color = "normal", linetype = "normal"), geom = "line") +
-    stat_density(aes(x = t, color = "t", linetype = "t"), geom = "line") +
-    stat_density(aes(x = frequency, color = "frequency", linetype = "frequency"), geom = "line") +
+    stat_density(aes(x = real, color = "real_data", linetype = "real_data"), geom = "line", size = 1.2) +
+    stat_density(aes(x = normal_5, color = "normal_5", linetype = "normal_5"), geom = "line", size = 0.8) +
+    stat_density(aes(x = normal_50, color = "normal_50", linetype = "normal_50"), geom = "line", size = 0.8) +
+    stat_density(aes(x = normal_95, color = "normal_95", linetype = "normal_95"), geom = "line", size = 0.8) +
+    stat_density(aes(x = normal_F, color = "normal_5F", linetype = "normal_5F"), geom = "line", size = 0.8) +
+    stat_density(aes(x = normal_95F, color = "normal_95F", linetype = "normal_95F"), geom = "line", size = 0.8) +
+    stat_density(aes(x = t_5, color = "t_5", linetype = "t_5"), geom = "line", size = 0.8) +
+    stat_density(aes(x = t_5F, color = "t_5F", linetype = "t_5F"), geom = "line", size = 0.8) +
+    stat_density(aes(x = frequency, color = "frequency", linetype = "frequency"), geom = "line", size = 0.8) +
     labs(
         title = "Empirical PDF Comparison",
         x = "Total Travel Time (seconds)",
@@ -87,26 +105,36 @@ plot4_right <- ggplot(data) +
         name = "Models",
         values = c(
             "real_data" = "red",
-            "normal" = "#aa10e7",
-            "t" = "#09ff00",
-            "frequency" = "blue"
+            "normal_5" = "#e76a10",
+            "normal_50" = "#e9ce00",
+            "normal_95" = "#67d606",
+            "normal_5F" = "#0ff1bc",
+            "normal_95F" = "#063ab2",
+            "t_5" = "#8d0aeb",
+            "t_5F" = "#da4a9e",
+            "frequency" = "#55424fa8"
         )
     ) +
     scale_linetype_manual(
         name = "Models",
         values = c(
             "real_data" = "solid",
-            "normal" = "dashed",
-            "t" = "dotdash",
-            "frequency" = "dotted"
+            "normal_5" = "dashed",
+            "normal_50" = "twodash",
+            "normal_95" = "longdash",
+            "normal_5F" = "twodash",
+            "normal_95F" = "dotdash",
+            "t_5" = "dotted",
+            "t_5F" = "dashed",
+            "frequency" = "longdash"
         )
     ) +
-    # coord_cartesian(xlim = c(0, 20000)) +
+    coord_cartesian(xlim = c(0, max)) +
     theme(
         panel.background = element_rect(fill = "white", colour = "black", linewidth = 1),
         panel.grid = element_line(colour = "white"),
         panel.border = element_rect(colour = "black", fill = NA, linewidth = 1),
-        legend.position = c(0.98, 0.05),
+        legend.position = c(0.98, 0.5),
         legend.justification = c(1, 0),
         text = element_text(size = rel(fontsize)),
         plot.title = element_text(size = rel(fontsize)),
