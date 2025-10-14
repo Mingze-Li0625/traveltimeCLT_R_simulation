@@ -42,7 +42,7 @@ set.seed(1234)
 # repeat time: how many times to repeat the simulation.
 repeat_time <- 100
 # X: how many trips to simulate for each real trip.
-X <- 5
+X <- 15
 # significance level: how similar the new edges are to the old edges.
 # a larger value means less similar, a smaller value means more similar.
 significance_level <- 0.05
@@ -167,6 +167,7 @@ profit_real <- rbindlist(lapply(used_trip, function(used_trip) {
     winrate = sum(profit > 0) / .N
   ), by = used_trip]
 }))
+group_size <- group_size + 1
 group_size
 repeat_time
 profit_real
