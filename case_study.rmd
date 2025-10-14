@@ -40,9 +40,9 @@ pair_counts <- start_end[, .(count = .N, start_time = max(start_time)), by = .(s
 # hyperparameters of the simulation.
 set.seed(1234)
 # repeat time: how many times to repeat the simulation.
-repeat_time <- 10
+repeat_time <- 100
 # X: how many trips to simulate for each real trip.
-X <- 3
+X <- 5
 # significance level: how similar the new edges are to the old edges.
 # a larger value means less similar, a smaller value means more similar.
 significance_level <- 0.05
@@ -57,30 +57,32 @@ group_size <- ceiling(trip_num / X)
 simulated_data <- data.table(
   repeat_time = rep(1:repeat_time, each = group_size)
 )
-groups <- pair_counts[count >= group_size, ]
+groups <- pair_counts[count >= group_size + 1, ]
 simulated_data <- simulated_data[,
   {
     group <- groups[sample.int(nrow(groups), 1)]
     trip_set <- start_end[(start == group$start & end == group$end)]
     id <- sample.int(nrow(trip_set), group_size)
-    id2 <- sample.int(nrow(trip_set), group_size)
+    id2 <- which(!1:nrow(trip_set) %in% id)
+    if (length(id2) == 1) {
+      id2 <- rep(id2, group_size)
+    } else {
+      id2 <- sample(id2, group_size, replace = TRUE)
+    }
     .(
       trip = trip_set$trip[id],
       start_time = trip_set$start_time[id],
-      trip2 = trip_set$trip[id],
-      start_time2 = trip_set$start_time[id]
+      trip2 = trip_set$trip[id2],
+      start_time2 = trip_set$start_time[id2]
     )
   },
   by = repeat_time
 ]
-simulated_test <- similar_route(simulated_data$trip, trips, r = X, sigma_n = sigma_n, significance = significance_level,Ftest_sd = F)
-simulated_price <- similar_route(simulated_data$trip2, trips, r = X, sigma_n = sigma_n, significance = significance_level,Ftest_sd = F)
-
-setnames(simulated_price,"trip","trip2")
-simulated_price <- merge(simulated_price, simulated_data[, c("trip2", "start_time2")], by = "trip2")
-setnames(simulated_price, old = c("newtrip", "linkId", "length", "start_time2"), new = c("tripID", "linkID", "distance_meters", "entry_time"), skip_absent = TRUE)
-simulated_test <- merge(simulated_test, simulated_data[, c("trip", "start_time")], by = "trip")
+simulated_test <- similar_route(simulated_data$trip, trips, r = X, sigma_n = sigma_n, significance = significance_level, Ftest_sd = F)
+simulated_test <- merge(simulated_test, unique(simulated_data[, c("trip", "start_time")]), by = "trip")
 setnames(simulated_test, old = c("newtrip", "linkId", "length", "start_time"), new = c("tripID", "linkID", "distance_meters", "entry_time"), skip_absent = TRUE)
+pricing_routes <- trips[data.table(trip = simulated_data$trip2)[, idx := .I], on = .(trip), nomatch = 0]
+setnames(pricing_routes, old = c("tripID", "linkId", "length", "time", "idx"), new = c("trip", "linkID", "distance_meters", "entry_time", "tripID"), skip_absent = TRUE)
 ```
 
 ```{r}
@@ -94,14 +96,19 @@ fit <- traveltimeCLT(trips, "trip-specific")
 ```
 
 ```{r}
-fit_price <- predict(fit, simulated_price)
+fit_price <- predict(fit, pricing_routes)
 fit_test <- predict(fit, simulated_test)
-price_stat <- simulated_price[, .(
+price_stat <- pricing_routes[, .(
   start_time = min(entry_time),
   distance = sum(distance_meters)
-), tripID]
+), by = tripID]
 price_stat$R <- request_R(fit_price, price_stat$start_time, price_stat$start_time, price_stat$distance, K = 0.9, risk_free = 0, zeta = 0)
 price_stat$K <- request_K(fit_price, price_stat$distance, discount_factor = 0.9)
+# repeat each row X times
+price_stat <- price_stat[
+  rep(1:.N, each = X)
+]
+
 
 test_stat <- simulated_test[, .(
   start_time = min(entry_time),
@@ -117,7 +124,7 @@ test_time <- simulated_test[, .(
   distance = sum(distance_meters)
 ), tripID]
 test_time$price <- price(test_time$duration, test_time$distance)[, 1]
-revenue <- sum(price_stat$R)/ repeat_time
+revenue <- sum(price_stat$R) / repeat_time
 revenue
 profit <- price_stat$R - pmax(test_time$price - price_stat$K, 0)
 ```
@@ -126,7 +133,7 @@ mean(profit)
 var(profit)
 max(profit)
 min(profit)
-length(profit[profit > 0]) / length(profit)#win rate
+length(profit[profit > 0]) / length(profit) # win rate
 ```
 
 ```{r}
@@ -135,23 +142,23 @@ used_trip <- c(1, 0.9, 0.8, 0.7, 0.6)
 
 profit_real <- rbindlist(lapply(used_trip, function(used_trip) {
   keep_num <- floor(trip_num * used_trip)
-  
+
   dt <- data.table(
     used_trip = used_trip,
     index = 1:(trip_num * repeat_time)
   )
-  
+
   dt[, `:=`(
     batch = (index - 1) %/% trip_num + 1,
     pos_in_batch = (index - 1) %% trip_num + 1
   )]
-  
+
   dt[, profit := fifelse(
     pos_in_batch <= keep_num,
     price_stat$R[index] - pmax(test_time$price[index] - price_stat$K[index], 0),
     price_stat$R[index]
   )]
-  
+
   dt[, .(
     mean = mean(profit),
     var = var(profit),
@@ -161,6 +168,7 @@ profit_real <- rbindlist(lapply(used_trip, function(used_trip) {
   ), by = used_trip]
 }))
 group_size
+repeat_time
 profit_real
 ```
 
