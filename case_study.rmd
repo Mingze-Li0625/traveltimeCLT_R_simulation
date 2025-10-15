@@ -42,7 +42,7 @@ set.seed(1234)
 # repeat time: how many times to repeat the simulation.
 repeat_time <- 100
 # X: how many trips to simulate for each real trip.
-X <- 15
+X <- 3
 # significance level: how similar the new edges are to the old edges.
 # a larger value means less similar, a smaller value means more similar.
 significance_level <- 0.05
